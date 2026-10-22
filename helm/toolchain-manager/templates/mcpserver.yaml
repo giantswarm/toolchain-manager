@@ -7,7 +7,10 @@ Registers this server with muster; its tools appear as x_<name>_<tool>.
 muster forwards the person's Dex ID token as every call's bearer
 (forwardToken) and attaches the person's token of the toolchain-manager's
 GitHub App, whose grant muster keeps (providerApps), in
-X-Muster-Grant-<github.grantApp>. No person's token is the manager's.
+X-Muster-Grant-<github.grantApp>. Pinned to the App
+(muster.mcpServer.authorizationServer), the bearer is the App token and the
+Dex ID token arrives in X-Muster-Id-Token (forwardIdentity). No person's
+token is the manager's.
 */}}
 apiVersion: muster.giantswarm.io/v1alpha1
 kind: MCPServer
@@ -34,11 +37,26 @@ spec:
   {{- end }}
   auth:
     type: oauth
+    {{- with .Values.muster.mcpServer.authorizationServer }}
+    authorizationServer:
+      issuer: {{ required "muster.mcpServer.authorizationServer.issuer is required to pin the registration" .issuer | quote }}
+      {{- with .expectedIssuer }}
+      expectedIssuer: {{ . | quote }}
+      {{- end }}
+      authorizationEndpoint: {{ required "muster.mcpServer.authorizationServer.authorizationEndpoint is required" .authorizationEndpoint | quote }}
+      tokenEndpoint: {{ required "muster.mcpServer.authorizationServer.tokenEndpoint is required" .tokenEndpoint | quote }}
+      clientCredentialsSecretRef:
+        {{- toYaml (required "muster.mcpServer.authorizationServer.clientCredentialsSecretRef is required" .clientCredentialsSecretRef) | nindent 8 }}
+      grantScope: subject
+    forwardIdentity: true
+    {{- else }}
     forwardToken: true
     providerApps:
       - {{ .Values.github.grantApp | quote }}
+    {{- end }}
     {{- with .Values.muster.mcpServer.requiredAudiences }}
     requiredAudiences:
       {{- toYaml . | nindent 6 }}
     {{- end }}
+{{- end }}
 {{- end }}

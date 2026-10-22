@@ -32,9 +32,9 @@ auth:
   dex:
     # -- Dex issuer URL, as the tokens name it.
     issuerURL: ""
-    # -- Where the manager reaches Dex when the issuer's public name does not
-    # resolve in the cluster; empty is the issuer.
-    discoveryURL: ""
+    # -- Where Dex's signing keys are fetched when the issuer's public name
+    # does not resolve in the cluster; empty: discovered from the issuer.
+    jwksURL: ""
     # -- Secret (name, key) in the release namespace holding the PEM CA of a
     # Dex with a private certificate; empty name trusts the system roots.
     caSecret:
@@ -90,6 +90,16 @@ muster:
     timeout: 0
     # -- Audiences muster requests at login and forwards in the token.
     requiredAudiences: []
+    # -- Pin the registration to the toolchain-manager's GitHub App instead
+    # of `github.grantApp`'s provider App (the shape before muster kept
+    # provider Apps): issuer (https://github.com/apps/<id>), expectedIssuer,
+    # authorizationEndpoint, tokenEndpoint and clientCredentialsSecretRef
+    # (name, namespace, clientIdKey, clientSecretKey) of muster's
+    # `auth.authorizationServer`, `grantScope: subject`. The bearer is then
+    # the person's App token, the Dex ID token arrives in
+    # `X-Muster-Id-Token`, and a person without the grant is answered with
+    # the App's sign-in link. Empty: provider Apps.
+    authorizationServer: {}  # @schema additionalProperties: true
     # -- Labels added to (and overriding) the MCPServer's.
     labels: {}
 

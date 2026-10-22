@@ -19,9 +19,9 @@ MCP server that manages toolchains for coding agents, their sources, package sea
 | replicaCount | int | `1` |  |
 | mcp.path | string | `"/mcp"` | Path of the MCP endpoint. |
 | service.port | int | `8080` |  |
-| auth | object | `{"dex":{"caSecret":{"key":"ca.crt","name":""},"discoveryURL":"","issuerURL":""},"trustedAudiences":[]}` | How every MCP call is authenticated: muster forwards the person's Dex ID token as its bearer (the MCPServer's `auth.forwardToken`). With `auth.dex.issuerURL` set, every call needs a valid token and the source tools are served; empty serves the package and Dockerfile tools only, to anyone who reaches the Service. |
+| auth | object | `{"dex":{"caSecret":{"key":"ca.crt","name":""},"issuerURL":"","jwksURL":""},"trustedAudiences":[]}` | How every MCP call is authenticated: muster forwards the person's Dex ID token as its bearer (the MCPServer's `auth.forwardToken`). With `auth.dex.issuerURL` set, every call needs a valid token and the source tools are served; empty serves the package and Dockerfile tools only, to anyone who reaches the Service. |
 | auth.dex.issuerURL | string | `""` | Dex issuer URL, as the tokens name it. |
-| auth.dex.discoveryURL | string | `""` | Where the manager reaches Dex when the issuer's public name does not resolve in the cluster; empty is the issuer. |
+| auth.dex.jwksURL | string | `""` | Where Dex's signing keys are fetched when the issuer's public name does not resolve in the cluster; empty: discovered from the issuer. |
 | auth.dex.caSecret | object | `{"key":"ca.crt","name":""}` | Secret (name, key) in the release namespace holding the PEM CA of a Dex with a private certificate; empty name trusts the system roots. |
 | auth.trustedAudiences | list | `[]` | OAuth client ids whose Dex ID tokens are accepted: the platform client and the audiences muster requires. |
 | owners | object | `{"emails":[],"groups":[]}` | The installation's owners, who approve a source a person adds once before its toolchains are offered: Dex groups and verified emails. Without any, an added source is never approved. |
@@ -37,6 +37,7 @@ MCP server that manages toolchains for coding agents, their sources, package sea
 | muster.mcpServer.description | string | `"Toolchains for coding agents: sources, package search, binaries and the Dockerfile they are built from"` |  |
 | muster.mcpServer.timeout | int | `0` | Tool call timeout in seconds; 0 keeps muster's default. |
 | muster.mcpServer.requiredAudiences | list | `[]` | Audiences muster requests at login and forwards in the token. |
+| muster.mcpServer.authorizationServer | object | `{}` | Pin the registration to the toolchain-manager's GitHub App instead of `github.grantApp`'s provider App (the shape before muster kept provider Apps): issuer (https://github.com/apps/<id>), expectedIssuer, authorizationEndpoint, tokenEndpoint and clientCredentialsSecretRef (name, namespace, clientIdKey, clientSecretKey) of muster's `auth.authorizationServer`, `grantScope: subject`. The bearer is then the person's App token, the Dex ID token arrives in `X-Muster-Id-Token`, and a person without the grant is answered with the App's sign-in link. Empty: provider Apps. |
 | muster.mcpServer.labels | object | `{}` | Labels added to (and overriding) the MCPServer's. |
 | resources.requests.cpu | string | `"20m"` |  |
 | resources.requests.memory | string | `"64Mi"` |  |

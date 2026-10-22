@@ -34,8 +34,8 @@ spec:
             - --github-api={{ .Values.github.api }}
             {{- if eq (include "toolchain-manager.auth" .) "true" }}
             - --dex-issuer-url={{ .Values.auth.dex.issuerURL }}
-            {{- with .Values.auth.dex.discoveryURL }}
-            - --dex-discovery-url={{ . }}
+            {{- with .Values.auth.dex.jwksURL }}
+            - --dex-jwks-url={{ . }}
             {{- end }}
             {{- if .Values.auth.dex.caSecret.name }}
             - --dex-ca-file=/etc/toolchain-manager/dex-ca/{{ .Values.auth.dex.caSecret.key }}
@@ -49,6 +49,9 @@ spec:
             - --owner-emails={{ join "," . }}
             {{- end }}
             - --grant-app={{ .Values.github.grantApp }}
+            {{- if .Values.muster.mcpServer.authorizationServer }}
+            - --grant-pinned=true
+            {{- end }}
             {{- with .Values.github.appInstallURL }}
             - --github-app-install-url={{ . }}
             {{- end }}

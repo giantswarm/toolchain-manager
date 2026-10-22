@@ -126,3 +126,57 @@ func TestGuard(t *testing.T) {
 		})
 	}
 }
+
+func TestGuardPinned(t *testing.T) {
+	dex := newFakeDex(t)
+	gh := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Authorization") != "Bearer good" {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		_, _ = w.Write([]byte(`{"login":"octocat"}`))
+	}))
+	defer gh.Close()
+	g, err := NewGuard(context.Background(), AuthConfig{
+		Issuer: dex.srv.URL, Audiences: []string{"muster"}, Pinned: true, GitHub: &github.Client{API: gh.URL, HTTP: gh.Client()},
+	}, slog.New(slog.NewTextHandler(io.Discard, nil)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var caller, grant string
+	var idHeader bool
+	h := g.Protect(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
+		id, _ := identity.FromContext(r.Context())
+		caller = id.String()
+		grant, _ = identity.Grant(r.Context())
+		idHeader = r.Header.Get(IDTokenHeader) != ""
+	}))
+	for name, tc := range map[string]struct {
+		bearer, idToken string
+		code            int
+	}{
+		"App token and Dex token": {bearer: "good", idToken: dex.token(t, "muster"), code: http.StatusOK},
+		"no Dex token":            {bearer: "good", code: http.StatusUnauthorized},
+		"no App token":            {idToken: dex.token(t, "muster"), code: http.StatusUnauthorized},
+		"App token refused":       {bearer: "revoked", idToken: dex.token(t, "muster"), code: http.StatusUnauthorized},
+	} {
+		t.Run(name, func(t *testing.T) {
+			caller, grant, idHeader = "", "", false
+			r := httptest.NewRequest(http.MethodPost, "/mcp", nil)
+			if tc.bearer != "" {
+				r.Header.Set("Authorization", "Bearer "+tc.bearer)
+			}
+			if tc.idToken != "" {
+				r.Header.Set(IDTokenHeader, tc.idToken)
+			}
+			w := httptest.NewRecorder()
+			h.ServeHTTP(w, r)
+			if w.Code != tc.code {
+				t.Fatalf("code = %d, want %d: %s", w.Code, tc.code, w.Body)
+			}
+			if tc.code == http.StatusOK && (caller != "admin@lab.local" || grant != "good" || idHeader) {
+				t.Errorf("handler saw caller %q grant %q id header %v", caller, grant, idHeader)
+			}
+		})
+	}
+}

@@ -37,7 +37,7 @@ type serveOptions struct {
 	mountRoot    string
 
 	dexIssuer        string
-	dexDiscoveryURL  string
+	dexJWKSURL       string
 	dexCAFile        string
 	trustedAudiences []string
 	namespace        string
@@ -45,6 +45,7 @@ type serveOptions struct {
 	ownerGroups      []string
 	ownerEmails      []string
 	grantApp         string
+	grantPinned      bool
 	appInstallURL    string
 }
 
@@ -63,7 +64,7 @@ func newServeCommand() *cobra.Command {
 	c.Flags().StringVar(&o.githubAPI, "github-api", "https://api.github.com", "GitHub API the release binaries are resolved through; GITHUB_TOKEN authenticates, when set")
 	c.Flags().StringVar(&o.mountRoot, "mount-root", toolchain.DefaultMountRoot, "directory a Session mounts its toolchains under, each at <mount-root>/<name>")
 	c.Flags().StringVar(&o.dexIssuer, "dex-issuer-url", os.Getenv("DEX_ISSUER_URL"), "Dex issuer whose ID tokens muster forwards as every call's bearer; set, every call is authenticated and the source tools are served (DEX_ISSUER_URL)")
-	c.Flags().StringVar(&o.dexDiscoveryURL, "dex-discovery-url", "", "where the manager reaches Dex when the issuer's public name does not resolve in the cluster; default the issuer")
+	c.Flags().StringVar(&o.dexJWKSURL, "dex-jwks-url", "", "where Dex's signing keys are fetched when the issuer's public name does not resolve in the cluster; default: discovered from the issuer")
 	c.Flags().StringVar(&o.dexCAFile, "dex-ca-file", "", "PEM CA bundle of a Dex with a private certificate")
 	c.Flags().StringSliceVar(&o.trustedAudiences, "trusted-audiences", nil, "OAuth client ids whose Dex ID tokens are accepted: the platform client and the audiences muster requires")
 	c.Flags().StringVar(&o.namespace, "namespace", os.Getenv("POD_NAMESPACE"), "namespace of the added sources (ToolchainSources), the manager's own (POD_NAMESPACE)")
@@ -71,6 +72,7 @@ func newServeCommand() *cobra.Command {
 	c.Flags().StringSliceVar(&o.ownerGroups, "owner-groups", nil, "Dex groups of the installation's owners, who approve a new source")
 	c.Flags().StringSliceVar(&o.ownerEmails, "owner-emails", nil, "verified emails of the installation's owners, who approve a new source")
 	c.Flags().StringVar(&o.grantApp, "grant-app", "github", "provider App muster keeps the person's grant of the toolchain-manager's GitHub App as, attached in "+server.GrantHeaderPrefix+"<app> (the MCPServer's auth.providerApps)")
+	c.Flags().BoolVar(&o.grantPinned, "grant-pinned", false, "the MCPServer is pinned to the toolchain-manager's GitHub App (auth.authorizationServer, grantScope subject, forwardIdentity): the bearer is the person's App token and the Dex ID token arrives in "+server.IDTokenHeader)
 	c.Flags().StringVar(&o.appInstallURL, "github-app-install-url", "", "where a repository's owner installs the toolchain-manager's GitHub App, https://github.com/apps/<slug>/installations/new")
 	return c
 }
@@ -98,7 +100,7 @@ func serve(ctx context.Context, o serveOptions) error {
 			return err
 		}
 		if guard, err = server.NewGuard(ctx, server.AuthConfig{
-			Issuer: o.dexIssuer, DiscoveryURL: o.dexDiscoveryURL, CAFile: o.dexCAFile, Audiences: o.trustedAudiences, GrantApp: o.grantApp, GitHub: gh,
+			Issuer: o.dexIssuer, JWKSURL: o.dexJWKSURL, CAFile: o.dexCAFile, Audiences: o.trustedAudiences, GrantApp: o.grantApp, Pinned: o.grantPinned, GitHub: gh,
 		}, slog.Default()); err != nil {
 			return err
 		}

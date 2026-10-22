@@ -1,10 +1,15 @@
-// Package server guards the MCP endpoint the way muster calls it: every
-// call carries the person's Dex ID token as its bearer (MCPServer
-// auth.forwardToken), validated against Dex's keys and the trusted
-// audiences, and the person's token of the toolchain-manager's GitHub App
-// muster keeps their grant of (auth.providerApps) in GrantHeader, verified
-// with GitHub. The tools then act for the person on the request's context;
-// a call without a valid Dex token is refused with 401.
+// Package server guards the MCP endpoint the way muster calls it, in one of
+// two registrations. With provider Apps (MCPServer auth.forwardToken and
+// auth.providerApps), every call carries the person's Dex ID token as its
+// bearer and the person's token of the toolchain-manager's GitHub App, whose
+// grant muster keeps, in GrantHeaderPrefix+<app>. Pinned to the App
+// (auth.authorizationServer, grantScope subject, auth.forwardIdentity), the
+// bearer is the person's App token and the Dex ID token arrives in
+// IDTokenHeader; a call without an App token GitHub accepts is a 401, which
+// muster answers with the App's sign-in link. Either way the Dex token is
+// validated against Dex's keys and the trusted audiences and the App token
+// with GitHub; the tools then act for the person on the request's context,
+// and a call without a valid Dex token is refused with 401.
 package server
 
 import (
@@ -32,6 +37,10 @@ import (
 // one provider App in: X-Muster-Grant-<app>.
 const GrantHeaderPrefix = "X-Muster-Grant-" //nolint:gosec // G101: a header name, not a credential
 
+// IDTokenHeader is where muster puts the person's Dex ID token on every call
+// to a registration with auth.forwardIdentity.
+const IDTokenHeader = "X-Muster-Id-Token"
+
 // grantCacheTTL is how long a verified App token is trusted without asking
 // GitHub again: a revoked one must stop working soon.
 const grantCacheTTL = 5 * time.Minute
@@ -40,10 +49,10 @@ const grantCacheTTL = 5 * time.Minute
 type AuthConfig struct {
 	// Issuer is Dex's issuer URL, which the tokens name.
 	Issuer string
-	// DiscoveryURL, when set, is where Dex is reached from the manager
-	// instead of Issuer: an in-cluster address of an issuer whose public
-	// name does not resolve there.
-	DiscoveryURL string
+	// JWKSURL, when set, is where Dex's signing keys are fetched instead of
+	// discovering them from Issuer: an in-cluster address of an issuer whose
+	// public name does not resolve in the cluster.
+	JWKSURL string
 	// CAFile is a PEM CA bundle of a Dex with a private certificate.
 	CAFile string
 	// Audiences are the OAuth client ids whose ID tokens are accepted: the
@@ -52,6 +61,9 @@ type AuthConfig struct {
 	// GrantApp is the provider App whose token muster attaches; empty reads
 	// none.
 	GrantApp string
+	// Pinned: the registration is pinned to the App, so the bearer is the
+	// person's App token and the Dex ID token arrives in IDTokenHeader.
+	Pinned bool
 	// GitHub verifies a grant token.
 	GitHub *github.Client
 }
@@ -86,18 +98,19 @@ func NewGuard(ctx context.Context, cfg AuthConfig, log *slog.Logger) (*Guard, er
 		}
 		hc.Transport = &http.Transport{TLSClientConfig: &tls.Config{RootCAs: pool, MinVersion: tls.VersionTLS12}}
 	}
-	ctx = oidc.ClientContext(ctx, hc)
-	discovery := cfg.Issuer
-	if cfg.DiscoveryURL != "" {
-		ctx = oidc.InsecureIssuerURLContext(ctx, cfg.Issuer)
-		discovery = cfg.DiscoveryURL
+	keyCtx := oidc.ClientContext(context.Background(), hc)
+	oidcCfg := &oidc.Config{SkipClientIDCheck: true}
+	var keys *oidc.IDTokenVerifier
+	if cfg.JWKSURL != "" {
+		keys = oidc.NewVerifier(cfg.Issuer, oidc.NewRemoteKeySet(keyCtx, cfg.JWKSURL), oidcCfg)
+	} else {
+		p, err := oidc.NewProvider(oidc.ClientContext(ctx, hc), cfg.Issuer)
+		if err != nil {
+			return nil, fmt.Errorf("auth: discover Dex at %s: %w", cfg.Issuer, err)
+		}
+		keys = p.VerifierContext(keyCtx, oidcCfg)
 	}
-	p, err := oidc.NewProvider(ctx, discovery)
-	if err != nil {
-		return nil, fmt.Errorf("auth: discover Dex at %s: %w", discovery, err)
-	}
-	keys := p.VerifierContext(oidc.ClientContext(context.Background(), hc), &oidc.Config{SkipClientIDCheck: true})
-	log.Info("callers authenticated by their forwarded Dex ID token", "issuer", cfg.Issuer, "audiences", cfg.Audiences, "grantApp", cfg.GrantApp)
+	log.Info("callers authenticated by their forwarded Dex ID token", "issuer", cfg.Issuer, "jwks", cfg.JWKSURL, "pinned", cfg.Pinned, "audiences", cfg.Audiences, "grantApp", cfg.GrantApp)
 	return &Guard{verifier: keys, cfg: cfg, log: log, cache: map[[sha256.Size]byte]time.Time{}}, nil
 }
 
@@ -107,28 +120,36 @@ func NewGuard(ctx context.Context, cfg AuthConfig, log *slog.Logger) (*Guard, er
 func (g *Guard) Protect(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		id, err := g.authenticate(ctx, strings.TrimSpace(strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")))
+		bearer := strings.TrimSpace(strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer "))
+		idToken, grant := bearer, ""
+		if g.cfg.Pinned {
+			idToken, grant = strings.TrimSpace(r.Header.Get(IDTokenHeader)), bearer
+		} else if g.cfg.GrantApp != "" {
+			grant = strings.TrimSpace(r.Header.Get(GrantHeaderPrefix + g.cfg.GrantApp))
+		}
+		id, err := g.authenticate(ctx, idToken)
 		if err != nil {
-			g.log.Warn("call refused", "path", r.URL.Path, "error", err)
-			w.Header().Set("WWW-Authenticate", `Bearer error="invalid_token"`)
-			http.Error(w, "unauthorized: "+err.Error(), http.StatusUnauthorized)
+			g.refuse(w, r, err)
 			return
 		}
 		ctx = identity.ContextWith(ctx, id)
-		if g.cfg.GrantApp != "" {
-			if token := strings.TrimSpace(r.Header.Get(GrantHeaderPrefix + g.cfg.GrantApp)); token != "" {
-				switch err := g.verifyGrant(ctx, token); {
-				case errors.Is(err, github.ErrRefused):
-					g.log.Info("GitHub refused the person's App token: treated as not granted", "caller", id.String())
-				case err != nil:
-					g.log.Warn("App token not verified: kept for the tool's own call to GitHub", "error", err)
-					ctx = identity.ContextWithGrant(ctx, token)
-				default:
-					ctx = identity.ContextWithGrant(ctx, token)
-				}
+		if grant != "" {
+			switch err := g.verifyGrant(ctx, grant); {
+			case errors.Is(err, github.ErrRefused):
+				g.log.Info("GitHub refused the person's App token: treated as not granted", "caller", id.String())
+				grant = ""
+			case err != nil:
+				g.log.Warn("App token not verified: kept for the tool's own call to GitHub", "error", err)
 			}
 		}
+		if g.cfg.Pinned && grant == "" {
+			// muster answers the pinned registration's 401 with the App's sign-in link.
+			g.refuse(w, r, errors.New("no GitHub App token GitHub accepts: grant the toolchain-manager's App in muster"))
+			return
+		}
+		ctx = identity.ContextWithGrant(ctx, grant)
 		r = r.Clone(ctx)
+		r.Header.Del(IDTokenHeader)
 		for name := range r.Header {
 			if strings.HasPrefix(http.CanonicalHeaderKey(name), http.CanonicalHeaderKey(GrantHeaderPrefix)) {
 				r.Header.Del(name)
@@ -138,9 +159,15 @@ func (g *Guard) Protect(next http.Handler) http.Handler {
 	})
 }
 
+func (g *Guard) refuse(w http.ResponseWriter, r *http.Request, err error) {
+	g.log.Warn("call refused", "path", r.URL.Path, "error", err)
+	w.Header().Set("WWW-Authenticate", `Bearer error="invalid_token"`)
+	http.Error(w, "unauthorized: "+err.Error(), http.StatusUnauthorized)
+}
+
 func (g *Guard) authenticate(ctx context.Context, bearer string) (*identity.Identity, error) {
 	if bearer == "" {
-		return nil, errors.New("no bearer token: muster forwards the person's Dex ID token")
+		return nil, errors.New("no Dex ID token: muster forwards the person's")
 	}
 	tok, err := g.verifier.Verify(ctx, bearer)
 	if err != nil {
