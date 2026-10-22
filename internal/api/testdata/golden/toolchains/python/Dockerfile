@@ -9,7 +9,7 @@
 # The build stage installs everything at the mount directory /opt/kagent/tools/python,
 # since shebangs and library paths embed it, and writes a wrapper per tool
 # in bin/.
-FROM docker.io/library/alpine:3.22.7@sha256:e9f2de928efcc1b53d0948e684b4f490315f280de6044844ec0ff26c0b44d3cf AS build
+FROM docker.io/library/alpine:3.24.3@sha256:b3413572228e34bd1c9245f5565e6cd127005655e8a7899aef33d8e83255c9e6 AS build
 ARG TARGETARCH
 COPY --chmod=0755 <<'TOOLCHAIN_WRAP' /usr/local/bin/toolchain-wrap
 #!/bin/sh
