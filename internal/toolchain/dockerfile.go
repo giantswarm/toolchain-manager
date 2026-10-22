@@ -280,7 +280,7 @@ func Read(dockerfile []byte) (Spec, error) {
 		foundSpec, got bool
 	)
 	for _, line := range strings.SplitAfter(string(dockerfile), "\n") {
-		if s, ok := strings.CutPrefix(line, checksumMarker); ok && !got {
+		if s, ok := strings.CutPrefix(strings.TrimSuffix(line, "\r\n"), checksumMarker); ok && !got {
 			sum, got = strings.TrimSpace(s), true
 			continue
 		}
@@ -315,9 +315,13 @@ func label(k, v string) string {
 	return k + `="` + strings.NewReplacer(`\`, `\\`, `"`, `\"`, `$`, `\$`).Replace(v) + `"`
 }
 
-// checksum is the SHA-256 of a Dockerfile without its checksum line.
+// checksum is the SHA-256 of a Dockerfile without its checksum line, its
+// line endings and trailing newlines normalised: a Dockerfile that travels
+// through JSON, a shell or an editor keeps its checksum unless its text
+// changed.
 func checksum(dockerfile string) string {
-	sum := sha256.Sum256([]byte(dockerfile))
+	text := strings.TrimRight(strings.ReplaceAll(dockerfile, "\r\n", "\n"), "\n")
+	sum := sha256.Sum256([]byte(text))
 	return hex.EncodeToString(sum[:])
 }
 

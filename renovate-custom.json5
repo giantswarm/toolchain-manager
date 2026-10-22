@@ -1,0 +1,10 @@
+{
+  // The golden files are what the tests write (go test ./internal/api
+  // -update), and the source template renders init_source's files: a pin in
+  // them changes with the code that writes it, never on its own, or the
+  // golden test and a written Dockerfile's checksum break.
+  ignorePaths: [
+    'internal/api/testdata/**',
+    'internal/source/template/**',
+  ],
+}
