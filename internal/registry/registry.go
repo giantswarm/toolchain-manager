@@ -195,8 +195,31 @@ var publicClient = &http.Client{
 	CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse },
 }
 
+// special are the special-purpose prefixes the netip predicates leave
+// out: shared address space (CGNAT), IETF protocol assignments,
+// benchmarking, documentation, and the IPv6 translation and tunnel
+// prefixes that embed an IPv4 address.
+var special = func() []netip.Prefix {
+	var out []netip.Prefix
+	for _, p := range []string{
+		"100.64.0.0/10", "192.0.0.0/24", "192.0.2.0/24", "198.18.0.0/15", "198.51.100.0/24", "203.0.113.0/24",
+		"64:ff9b::/96", "64:ff9b:1::/48", "2001::/32", "2001:db8::/32", "2002::/16",
+	} {
+		out = append(out, netip.MustParsePrefix(p))
+	}
+	return out
+}()
+
 // public reports whether ip is a public unicast address.
 func public(ip netip.Addr) bool {
 	ip = ip.Unmap()
-	return ip.IsGlobalUnicast() && !ip.IsPrivate() && !ip.IsLoopback() && !ip.IsLinkLocalUnicast()
+	if !ip.IsGlobalUnicast() || ip.IsPrivate() || ip.IsLoopback() || ip.IsLinkLocalUnicast() {
+		return false
+	}
+	for _, p := range special {
+		if p.Contains(ip) {
+			return false
+		}
+	}
+	return true
 }
