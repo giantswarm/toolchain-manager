@@ -30,6 +30,15 @@ type Catalog struct {
 	// GitHub reads a source's releases and Dockerfiles with the person's
 	// token.
 	GitHub *github.Client
+	// Registry tells whether a published version's image exists; nil
+	// leaves it to the source's CI jobs.
+	Registry ImageChecker
+}
+
+// ImageChecker tells whether an image tag exists: registry.ErrUnknown when
+// the registry cannot be asked.
+type ImageChecker interface {
+	Exists(ctx context.Context, image string) (bool, error)
 }
 
 // Toolchain is a published toolchain of an offered source.

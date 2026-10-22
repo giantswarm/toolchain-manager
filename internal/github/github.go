@@ -1,12 +1,14 @@
 // Package github asks GitHub, with the person's user-to-server token of the
 // toolchain-manager's GitHub App, who the person is, whether the App's
 // installation grants a repository, and what a granted repository holds:
-// its releases and files. A user-to-server token reaches a
+// its releases, files, pull requests and the CI results of its commits; and
+// it opens a pull request as the person. A user-to-server token reaches a
 // repository only where the App is installed and the person has access, so a
-// repository it reads is one the App's installation grants.
+// repository it reads or writes is one the App's installation grants.
 package github
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -125,16 +127,21 @@ func (c *Client) File(ctx context.Context, token, repository, file, ref string) 
 	if err != nil {
 		return nil, err
 	}
-	segments := strings.Split(file, "/")
-	for i, s := range segments {
-		segments[i] = url.PathEscape(s)
-	}
-	resp, err := c.do(ctx, token, path+"/contents/"+strings.Join(segments, "/")+"?ref="+url.QueryEscape(ref), "application/vnd.github.raw+json")
+	resp, err := c.do(ctx, token, http.MethodGet, path+"/contents/"+escapePath(file)+"?ref="+url.QueryEscape(ref), "application/vnd.github.raw+json", nil)
 	if err != nil {
 		return nil, err
 	}
 	defer func() { _ = resp.Body.Close() }()
 	return io.ReadAll(io.LimitReader(resp.Body, 1<<20))
+}
+
+// escapePath escapes each segment of a slash-separated path.
+func escapePath(p string) string {
+	segments := strings.Split(p, "/")
+	for i, s := range segments {
+		segments[i] = url.PathEscape(s)
+	}
+	return strings.Join(segments, "/")
 }
 
 func repoPath(repository string) (string, error) {
@@ -146,37 +153,57 @@ func repoPath(repository string) (string, error) {
 }
 
 func (c *Client) get(ctx context.Context, token, path string, out any) error {
-	resp, err := c.do(ctx, token, path, "application/vnd.github+json")
+	return c.send(ctx, token, http.MethodGet, path, nil, out)
+}
+
+// send sends method path with in as its JSON body and decodes a success's
+// answer into out, when out is set.
+func (c *Client) send(ctx context.Context, token, method, path string, in, out any) error {
+	resp, err := c.do(ctx, token, method, path, "application/vnd.github+json", in)
 	if err != nil {
 		return err
 	}
 	defer func() { _ = resp.Body.Close() }()
+	if out == nil {
+		return nil
+	}
 	return json.NewDecoder(resp.Body).Decode(out)
 }
 
-// do sends GET path and returns a 200's response, its body for the caller
-// to close.
-func (c *Client) do(ctx context.Context, token, path, accept string) (*http.Response, error) {
+// do sends method path, with in as its JSON body when set, and returns a
+// success's response, its body for the caller to close.
+func (c *Client) do(ctx context.Context, token, method, path, accept string, in any) (*http.Response, error) {
 	api := c.API
 	if api == "" {
 		api = DefaultAPI
 	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, strings.TrimSuffix(api, "/")+path, nil)
+	var body io.Reader
+	if in != nil {
+		b, err := json.Marshal(in)
+		if err != nil {
+			return nil, err
+		}
+		body = bytes.NewReader(b)
+	}
+	req, err := http.NewRequestWithContext(ctx, method, strings.TrimSuffix(api, "/")+path, body)
 	if err != nil {
 		return nil, err
 	}
 	req.Header.Set("Authorization", "Bearer "+token)
 	req.Header.Set("Accept", accept)
 	req.Header.Set("X-GitHub-Api-Version", "2022-11-28")
+	if in != nil {
+		req.Header.Set("Content-Type", "application/json")
+	}
 	hc := c.HTTP
 	if hc == nil {
 		hc = &http.Client{Timeout: 20 * time.Second}
 	}
 	resp, err := hc.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("GET %s: %w", path, err)
+		return nil, fmt.Errorf("%s %s: %w", method, path, err)
 	}
-	if resp.StatusCode == http.StatusOK {
+	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
 		return resp, nil
 	}
 	defer func() { _ = resp.Body.Close() }()
@@ -186,6 +213,6 @@ func (c *Client) do(ctx context.Context, token, path, accept string) (*http.Resp
 	case http.StatusNotFound:
 		return nil, ErrNotFound
 	}
-	body, _ := io.ReadAll(io.LimitReader(resp.Body, 512))
-	return nil, fmt.Errorf("GET %s: %s: %s", path, resp.Status, strings.TrimSpace(string(body)))
+	msg, _ := io.ReadAll(io.LimitReader(resp.Body, 512))
+	return nil, fmt.Errorf("%s %s: %s: %s", method, path, resp.Status, strings.TrimSpace(string(msg)))
 }

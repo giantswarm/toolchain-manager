@@ -73,7 +73,7 @@ func TestSourceToolsAnswerAsTheCaller(t *testing.T) {
 	for _, tool := range tools.Tools {
 		names[tool.Name] = tool
 	}
-	for _, want := range []string{ToolListSources, ToolAddSource, ToolApproveSource, ToolRemoveSource, ToolListToolchains, ToolDescribeToolchain} {
+	for _, want := range []string{ToolListSources, ToolAddSource, ToolApproveSource, ToolRemoveSource, ToolListToolchains, ToolDescribeToolchain, ToolCreateToolchain, ToolBuildStatus} {
 		if _, ok := names[want]; !ok {
 			t.Errorf("%s not served", want)
 		}
