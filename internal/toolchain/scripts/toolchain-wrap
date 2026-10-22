@@ -1,0 +1,102 @@
+#!/bin/sh
+# toolchain-wrap <prefix> <tool> <path> [<VAR>=<value>...]
+#
+# Write <prefix>/bin/<tool>: the wrapper that sets the tool's environment
+# and runs it through the prefix's own loader and libraries, so that it runs
+# beside any Harness image. <path> is the command's file under the prefix;
+# empty finds it in the prefix's usr/local/bin, usr/bin, bin, usr/sbin or
+# sbin. A script runs through its interpreter the same way; a static binary
+# is run as it is.
+set -eu
+
+prefix="$1" tool="$2" path="$3"
+shift 3
+
+target=""
+if [ -n "$path" ]; then
+  target="${prefix}/${path}"
+else
+  for d in usr/local/bin usr/bin bin usr/sbin sbin; do
+    if [ -e "${prefix}/${d}/${tool}" ]; then
+      target="${prefix}/${d}/${tool}"
+      break
+    fi
+  done
+fi
+if [ -z "$target" ] || [ ! -e "$target" ]; then
+  echo "toolchain-wrap: no command ${tool} under ${prefix}" >&2
+  exit 1
+fi
+target=$(readlink -f "$target")
+case "$target" in
+"${prefix}"/*) ;;
+*)
+  echo "toolchain-wrap: ${tool} resolves to ${target}, outside ${prefix}" >&2
+  exit 1
+  ;;
+esac
+wrapper="${prefix}/bin/${tool}"
+if [ "$target" = "$wrapper" ]; then
+  echo "toolchain-wrap: ${tool} is installed as ${wrapper} itself, where its wrapper goes" >&2
+  exit 1
+fi
+
+loader=""
+for l in "${prefix}"/lib/ld-musl-*.so.1; do
+  [ -e "$l" ] && loader="$l"
+done
+libs="${prefix}/lib:${prefix}/usr/lib"
+
+# dynamic <file>: whether the file is a dynamically linked program whose
+# libraries the prefix holds.
+dynamic() {
+  [ -n "$loader" ] && "$loader" --library-path "$libs" --list "$1" >/dev/null 2>&1
+}
+
+run="$target"
+if dynamic "$target"; then
+  run="${loader} --library-path ${libs} ${target}"
+elif [ "$(head -c 2 "$target")" = "#!" ]; then
+  # A script: its interpreter, when the prefix holds it, through the loader.
+  # A package built for / names /usr/bin/python3; the prefix's is
+  # <prefix>/usr/bin/python3.
+  interpreter=$(head -n 1 "$target" | sed 's/^#![[:space:]]*//')
+  first=${interpreter%% *}
+  if [ "$first" = "/usr/bin/env" ]; then
+    rest=${interpreter#* }
+    for d in usr/local/bin usr/bin bin; do
+      if [ -e "${prefix}/${d}/${rest%% *}" ]; then
+        first="${prefix}/${d}/${rest%% *}"
+        interpreter="${first}${rest#"${rest%% *}"}"
+        break
+      fi
+    done
+  fi
+  case "$first" in
+  "${prefix}"/*) ;;
+  /*)
+    if [ -e "${prefix}${first}" ]; then
+      first="${prefix}${first}"
+      interpreter="${prefix}${interpreter}"
+    fi
+    ;;
+  esac
+  case "$first" in
+  "${prefix}"/*)
+    if dynamic "$(readlink -f "$first")"; then
+      run="${loader} --library-path ${libs} ${interpreter} ${target}"
+    fi
+    ;;
+  esac
+fi
+
+mkdir -p "${prefix}/bin"
+{
+  echo '#!/bin/sh'
+  for assignment in "$@"; do
+    echo "export ${assignment%%=*}='${assignment#*=}'"
+  done
+  echo "exec ${run} \"\$@\""
+} >"$wrapper"
+chmod 0755 "$wrapper"
+echo "toolchain-wrap: bin/${tool} runs ${run}"

@@ -1,0 +1,39 @@
+#!/bin/sh
+# toolchain-fetch <prefix> <name> <url> <sha256> [<path>]
+#
+# Download a release binary, verify its SHA-256 checksum and install it as
+# <prefix>/usr/local/bin/<name>. An archive (.tar.gz, .tgz, .tar.xz, .zip)
+# is unpacked and its file <path> installed, or its file called <name>.
+set -eu
+
+prefix="$1" name="$2" url="$3" sum="$4" path="${5:-}"
+
+work=$(mktemp -d)
+wget -q -O "${work}/download" "$url"
+echo "${sum}  ${work}/download" | sha256sum -c -
+
+mkdir -p "${work}/files"
+case "$url" in
+*.tar.gz | *.tgz) tar -xzf "${work}/download" -C "${work}/files" ;;
+*.tar.xz) tar -xJf "${work}/download" -C "${work}/files" ;;
+*.zip) unzip -q "${work}/download" -d "${work}/files" ;;
+*)
+  mv "${work}/download" "${work}/files/${name}"
+  path="$name"
+  ;;
+esac
+
+if [ -n "$path" ]; then
+  file="${work}/files/${path}"
+else
+  file=$(find "${work}/files" -type f -name "$name" | head -n 1)
+fi
+if [ -z "$file" ] || [ ! -f "$file" ]; then
+  echo "toolchain-fetch: no file ${path:-$name} in ${url}" >&2
+  exit 1
+fi
+mkdir -p "${prefix}/usr/local/bin"
+cp "$file" "${prefix}/usr/local/bin/${name}"
+chmod 0755 "${prefix}/usr/local/bin/${name}"
+rm -rf "$work"
+echo "toolchain-fetch: usr/local/bin/${name} from ${url}"

@@ -1,0 +1,1068 @@
+C:Q1NB4LKtW6vf/+j0+137aYa8kX5ic=
+P:acf-jquery
+V:0.4.3-r2
+A:x86_64
+S:115498
+I:385032
+T:jquery libraries for ACF
+U:https://gitlab.alpinelinux.org/acf/acf-jquery
+L:GPL-2.0-only
+o:acf-jquery
+m:Ted Trask <ttrask01@yahoo.com>
+t:1621023235
+c:6a7ffd78f6143528020404a80d363f54144095a7
+
+C:Q1PoE7y6LhxU+kQVBIyMWyKRmhhjE=
+P:binutils
+V:2.45.1-r1
+A:x86_64
+S:3229647
+I:10583042
+T:Tools necessary to build programs
+U:https://www.gnu.org/software/binutils/
+L:GPL-2.0-or-later AND LGPL-2.1-or-later AND BSD-3-Clause
+o:binutils
+m:Natanael Copa <ncopa@alpinelinux.org>
+t:1767883750
+c:673df4f3ce2e71e9bcfbf64939332917a35795fc
+D:so:libc.musl-x86_64.so.1 so:libgcc_s.so.1 so:libjansson.so.4 so:libstdc++.so.6 so:libz.so.1 so:libzstd.so.1
+p:cmd:addr2line=2.45.1-r1 cmd:ar=2.45.1-r1 cmd:as=2.45.1-r1 cmd:c++filt=2.45.1-r1 cmd:dwp=2.45.1-r1 cmd:elfedit=2.45.1-r1 cmd:gprof=2.45.1-r1 cmd:ld.bfd=2.45.1-r1 cmd:ld=2.45.1-r1 cmd:nm=2.45.1-r1 cmd:objcopy=2.45.1-r1 cmd:objdump=2.45.1-r1 cmd:ranlib=2.45.1-r1 cmd:readelf=2.45.1-r1 cmd:size=2.45.1-r1 cmd:strings=2.45.1-r1 cmd:strip=2.45.1-r1 so:libbfd-2.45.1.so=0 so:libctf-nobfd.so.0=0.0.0 so:libctf.so.0=0.0.0 so:libopcodes-2.45.1.so=0 so:libsframe.so.2=2.0.0
+
+C:Q11wQFJqbxhcyyXU9nWdFoLD6qEa8=
+P:boost1.84-python3
+V:1.84.0-r6
+A:x86_64
+S:98574
+I:271832
+T:Boost python3 shared library
+U:https://www.boost.org/
+L:BSL-1.0
+o:boost1.84
+m:Natanael Copa <ncopa@alpinelinux.org>
+t:1774640349
+c:00de196d70821acfc9097299ba10472a0e9847b7
+D:so:libc.musl-x86_64.so.1 so:libgcc_s.so.1 so:libpython3.14.so.1.0 so:libstdc++.so.6
+p:boost-python3=1.84.0-r6 so:libboost_python314.so.1.84.0=1.84.0
+
+C:Q1rDAvw1sFjseWgll5dVIUdEuhMBo=
+P:cargo
+V:1.96.1-r0
+A:x86_64
+S:9885432
+I:23419080
+T:The Rust package manager
+U:https://doc.rust-lang.org/cargo/
+L:(Apache-2.0 OR MIT) AND UNLICENSE
+o:rust
+m:team/rust <alpine@ptrcnull.me>
+t:1784499800
+c:0f7dfa74845f47bc7ae7251e07fd7d68716870b8
+D:rust=1.96.1-r0 so:libc.musl-x86_64.so.1 so:libcrypto.so.3 so:libcurl.so.4 so:libgcc_s.so.1 so:libscudo.so so:libsqlite3.so.0 so:libssh2.so.1 so:libssl.so.3 so:libz.so.1
+p:cargo-bootstrap=1.96.1-r0 cmd:cargo=1.96.1-r0
+
+C:Q12X7Mw70jaWce+9JnN3ZH8B/SNcM=
+P:freeradius-python3
+V:3.0.27-r3
+A:x86_64
+S:15658
+I:44946
+T:Python 3 module for FreeRADIUS server
+U:https://freeradius.org/
+L:GPL-2.0-or-later
+o:freeradius
+m:Leonardo Arena <rnalrd@alpinelinux.org>
+t:1774658079
+c:6c9b01e0bdbc8c20d0cd701bf1e9a33013b2c67f
+D:freeradius=3.0.27-r3 so:libc.musl-x86_64.so.1 so:libpython3.14.so.1.0
+p:so:rlm_python3.so=0
+
+C:Q1TIyF2jojr1K1xE6gEHCEcUVJjIQ=
+P:freeswitch-python3
+V:1.10.12-r6
+A:x86_64
+S:50054
+I:164552
+T:Freeswitch Python3 module
+U:https://www.freeswitch.org/
+L:MPL-1.1
+o:freeswitch
+m:Natanael Copa <ncopa@alpinelinux.org>
+t:1792669498
+c:4f5be284ba89eb2c6f0c9376668ec1f8d7265d26
+D:so:libc.musl-x86_64.so.1 so:libfreeswitch.so.1 so:libgcc_s.so.1 so:libpython3.14.so.1.0 so:libstdc++.so.6
+
+C:Q1ReMw7n/rV2Z/hbIV2XSCr/AxfQ0=
+P:gcc
+V:15.2.0-r5
+A:x86_64
+S:60496469
+I:167691096
+T:The GNU Compiler Collection
+U:https://gcc.gnu.org
+L:GPL-2.0-or-later AND LGPL-2.1-or-later
+o:gcc
+m:Ariadne Conill <ariadne@dereferenced.org>
+t:1780084766
+c:423a8ad043d07f2c7546c8ec3e2b0384cda360ae
+D:binutils libgcc-static libgomp=15.2.0-r5 libatomic=15.2.0-r5 libgomp=15.2.0-r5 so:libc.musl-x86_64.so.1 so:libgcc_s.so.1 so:libgmp.so.10 so:libisl.so.23 so:libmpc.so.3 so:libmpfr.so.6 so:libstdc++.so.6 so:libz.so.1
+p:cmd:c89=15.2.0-r5 cmd:c99=15.2.0-r5 cmd:cc=15.2.0-r5 cmd:cpp=15.2.0-r5 cmd:gcc-ar=15.2.0-r5 cmd:gcc-nm=15.2.0-r5 cmd:gcc-ranlib=15.2.0-r5 cmd:gcc=15.2.0-r5 cmd:gcov-dump=15.2.0-r5 cmd:gcov-tool=15.2.0-r5 cmd:gcov=15.2.0-r5 cmd:lto-dump=15.2.0-r5 cmd:x86_64-alpine-linux-musl-cc=15.2.0-r5 cmd:x86_64-alpine-linux-musl-gcc-15.2.0=15.2.0-r5 cmd:x86_64-alpine-linux-musl-gcc-ar=15.2.0-r5 cmd:x86_64-alpine-linux-musl-gcc-nm=15.2.0-r5 cmd:x86_64-alpine-linux-musl-gcc-ranlib=15.2.0-r5 cmd:x86_64-alpine-linux-musl-gcc=15.2.0-r5 so:libasan.so.8=8.0.0 so:libcc1.so.0=0.0.0 so:libhwasan.so.0=0.0.0 so:libitm.so.1=1.0.0 so:liblsan.so.0=0.0.0 so:libtsan.so.2=2.0.0 so:libubsan.so.1=1.0.0
+
+C:Q1YZST2BJP5JqO4dj3oTcs9+OXczc=
+P:gdbm
+V:1.26-r0
+A:x86_64
+S:31902
+I:73200
+T:GNU dbm is a set of database routines that use extensible hashing
+U:https://www.gnu.org/software/gdbm/
+L:GPL-3.0-or-later
+o:gdbm
+m:Natanael Copa <ncopa@alpinelinux.org>
+t:1753888742
+c:1ea03990396db618edfcc8a9a0bc6b72662bac8f
+D:so:libc.musl-x86_64.so.1
+p:so:libgdbm.so.6=6.0.0 so:libgdbm_compat.so.4=4.0.0
+
+C:Q1ubqhYMW2Z+LZyyQCCZknhvXStOk=
+P:gmp
+V:6.3.0-r4
+A:x86_64
+S:220074
+I:423880
+T:free library for arbitrary precision arithmetic
+U:https://gmplib.org/
+L:LGPL-3.0-or-later OR GPL-2.0-or-later
+o:gmp
+m:Natanael Copa <ncopa@alpinelinux.org>
+t:1767883750
+c:206e7b39f7884d62a174aba4d33a42454518c1c2
+D:so:libc.musl-x86_64.so.1
+p:so:libgmp.so.10=10.5.0
+
+C:Q1DoNJu9AfRFj9xs2QmK2h/CA8T5c=
+P:isl25
+V:0.25-r2
+A:x86_64
+S:896032
+I:2177640
+T:An Integer Set Library for the Polyhedral Model
+U:http://isl.gforge.inria.fr/
+L:MIT
+o:isl25
+m:Timo Teräs <timo.teras@iki.fi>
+t:1710257622
+c:fc95c59998285564fbcb0bfb2443898c62e10171
+D:so:libc.musl-x86_64.so.1 so:libgmp.so.10
+p:so:libisl.so.23=23.2.0
+
+C:Q1stvtY3e3CwJPyWQOnjlB9nQqEvU=
+P:jansson
+V:2.15.0-r0
+A:x86_64
+S:48950
+I:87832
+T:lightweight JSON library
+U:http://www.digip.org/jansson/
+L:MIT
+o:jansson
+m:Natanael Copa <ncopa@alpinelinux.org>
+t:1769436749
+c:88919740865a31680e7f1c4cb568dfd7a87e9f08
+D:so:libc.musl-x86_64.so.1
+p:so:libjansson.so.4=4.15.0
+
+C:Q1fCPT8pgqOTM1BzVKCAX+9gliRYc=
+P:jq
+V:1.8.2-r0
+A:x86_64
+S:155516
+I:351984
+T:A lightweight and flexible command-line JSON processor
+U:https://jqlang.github.io/jq/
+L:MIT
+o:jq
+m:Patrycja Rosa <alpine@ptrcnull.me>
+t:1788306539
+c:2437351bfa2aecb328f0b859f4a4987476ae31c9
+D:so:libc.musl-x86_64.so.1 so:libonig.so.5
+p:cmd:jq=1.8.2-r0 so:libjq.so.1=1.0.4
+
+C:Q1KLEMFPzk420aAIjxk8eGx7pYkgA=
+P:jq-dev
+V:1.8.2-r0
+A:x86_64
+S:194060
+I:640473
+T:A lightweight and flexible command-line JSON processor (development files)
+U:https://jqlang.github.io/jq/
+L:MIT
+o:jq
+m:Patrycja Rosa <alpine@ptrcnull.me>
+t:1788306539
+c:2437351bfa2aecb328f0b859f4a4987476ae31c9
+D:jq=1.8.2-r0 pkgconfig
+p:pc:libjq=1.8.2
+
+C:Q16pyr44kGmkO9EPLIImVHfur5lTs=
+P:jq-doc
+V:1.8.2-r0
+A:x86_64
+S:60998
+I:89896
+T:A lightweight and flexible command-line JSON processor (documentation)
+U:https://jqlang.github.io/jq/
+L:MIT
+o:jq
+m:Patrycja Rosa <alpine@ptrcnull.me>
+t:1788306539
+c:2437351bfa2aecb328f0b859f4a4987476ae31c9
+i:docs jq=1.8.2-r0
+
+C:Q18c22qoqMRNCYo0Ka8dmN70v6DF8=
+P:kamailio-python3
+V:6.0.6-r0
+A:x86_64
+S:126395
+I:351248
+T:Kamailio Execute embedded Python3 scripts
+U:https://www.kamailio.org/
+L:GPL-2.0-or-later
+o:kamailio
+m:Nathan Angelacos <nangel@alpinelinux.org>
+t:1775717815
+c:a9269823f159367295fbab77ebdf452482e70a55
+D:kamailio so:libc.musl-x86_64.so.1 so:libpython3.14.so.1.0
+
+C:Q1CYp9vyHwoo/+1nsRF1KjCO0RLLM=
+P:libatomic
+V:15.2.0-r5
+A:x86_64
+S:10241
+I:30320
+T:GCC Atomic library
+U:https://gcc.gnu.org
+L:GPL-2.0-or-later AND LGPL-2.1-or-later
+o:gcc
+m:Ariadne Conill <ariadne@dereferenced.org>
+t:1780084766
+c:423a8ad043d07f2c7546c8ec3e2b0384cda360ae
+D:so:libc.musl-x86_64.so.1
+p:so:libatomic.so.1=1.2.0
+
+C:Q1CFZrpcevl8JUdL6LJOi0jwEWtn0=
+P:libbz2
+V:1.0.8-r6
+A:x86_64
+S:35467
+I:78480
+T:Shared library for bz2
+U:https://sourceware.org/bzip2/
+L:bzip2-1.0.6
+o:bzip2
+m:Natanael Copa <ncopa@alpinelinux.org>
+t:1684120357
+c:33283848034c9885d984c8e8697c645c57324938
+D:so:libc.musl-x86_64.so.1
+p:so:libbz2.so.1=1.0.8
+
+C:Q1HA3ulzTPIvyXzdGBkTu9cQ5t+wg=
+P:libcrypto3
+V:3.5.9-r0
+A:x86_64
+S:1980198
+I:5221974
+T:Crypto library from openssl
+U:https://www.openssl.org/
+L:Apache-2.0
+o:openssl
+m:Natanael Copa <ncopa@alpinelinux.org>
+t:1790752173
+c:29b9ec24b1b5b39aeef51fa2a044210e2ec5258e
+k:100
+D:so:libc.musl-x86_64.so.1
+p:so:libcrypto.so.3=3
+
+C:Q1tugvqnkTpj2ncbvdqmrTiEIEf3g=
+P:libexpat
+V:2.9.0-r0
+A:x86_64
+S:62175
+I:140992
+T:XML Parser library written in C (libraries)
+U:https://libexpat.github.io/
+L:MIT
+o:expat
+m:Carlo Landmeter <clandmeter@alpinelinux.org>
+t:1792234642
+c:c10df79ce35862cf273f98f6eb78d52e4f064ac7
+D:so:libc.musl-x86_64.so.1
+p:so:libexpat.so.1=1.13.0
+
+C:Q1L3smH3/OzE7r2LMw5/b7gHE7/jo=
+P:libffi
+V:3.5.2-r1
+A:x86_64
+S:18348
+I:38960
+T:portable, high level programming interface to various calling conventions.
+U:https://sourceware.org/libffi/
+L:MIT
+o:libffi
+m:Natanael Copa <ncopa@alpinelinux.org>
+t:1776273462
+c:2c2a7bb4a8b16066834e90402567b2c19403a790
+D:so:libc.musl-x86_64.so.1
+p:so:libffi.so.8=8.2.0
+
+C:Q1N5wVbFPgzBQOh8ecCj3SK27lFVI=
+P:libgcc
+V:15.2.0-r5
+A:x86_64
+S:80348
+I:173920
+T:GNU C compiler runtime libraries
+U:https://gcc.gnu.org
+L:GPL-2.0-or-later AND LGPL-2.1-or-later
+o:gcc
+m:Ariadne Conill <ariadne@dereferenced.org>
+t:1780084766
+c:423a8ad043d07f2c7546c8ec3e2b0384cda360ae
+D:so:libc.musl-x86_64.so.1
+p:so:libgcc_s.so.1=1
+
+C:Q1LSywFilrZ7CEu/f6MfIEV5TB+sY=
+P:libgcc-static
+V:15.2.0-r5
+A:x86_64
+S:2249602
+I:3286420
+T:GNU C compiler runtime libraries
+U:https://gcc.gnu.org
+L:GPL-2.0-or-later AND LGPL-2.1-or-later
+o:gcc
+m:Ariadne Conill <ariadne@dereferenced.org>
+t:1780084766
+c:423a8ad043d07f2c7546c8ec3e2b0384cda360ae
+
+C:Q1LcIRIB/6mOXBdCCSBaWu00SvRJY=
+P:libgo
+V:15.2.0-r5
+A:x86_64
+S:7421400
+I:28440936
+T:Go runtime library for GCC
+U:https://gcc.gnu.org
+L:GPL-2.0-or-later AND LGPL-2.1-or-later
+o:gcc
+m:Ariadne Conill <ariadne@dereferenced.org>
+t:1780084766
+c:423a8ad043d07f2c7546c8ec3e2b0384cda360ae
+D:so:libc.musl-x86_64.so.1 so:libgcc_s.so.1
+p:so:libgo.so.24=24.0.0
+
+C:Q1pQKGM0/KCNQbVAnY4xg2u5d+RbI=
+P:libgomp
+V:15.2.0-r5
+A:x86_64
+S:153729
+I:338704
+T:GCC shared-memory parallel programming API library
+U:https://gcc.gnu.org
+L:GPL-2.0-or-later AND LGPL-2.1-or-later
+o:gcc
+m:Ariadne Conill <ariadne@dereferenced.org>
+t:1780084766
+c:423a8ad043d07f2c7546c8ec3e2b0384cda360ae
+D:so:libc.musl-x86_64.so.1
+p:so:libgomp.so.1=1.0.0
+
+C:Q1nzGObjJNaCcnSCkZTPasavut7RI=
+P:libncursesw
+V:6.6_p20260516-r0
+A:x86_64
+S:159438
+I:342888
+T:Console display library (libncursesw)
+U:https://invisible-island.net/ncurses/
+L:X11
+o:ncurses
+m:Milan P. Stanić <mps@arvanta.net>
+t:1779608199
+c:2cee8a7328d061418336ad327b512d96bcd7bc5e
+D:ncurses-terminfo-base=6.6_p20260516-r0 so:libc.musl-x86_64.so.1
+p:so:libncursesw.so.6=6.6
+
+C:Q1FJvcQ0Iy7RH8W7l1ulGaBxVKb1Y=
+P:libpanelw
+V:6.6_p20260516-r0
+A:x86_64
+S:5563
+I:17960
+T:Console display library (libpanelw)
+U:https://invisible-island.net/ncurses/
+L:X11
+o:ncurses
+m:Milan P. Stanić <mps@arvanta.net>
+t:1779608199
+c:2cee8a7328d061418336ad327b512d96bcd7bc5e
+D:ncurses-terminfo-base=6.6_p20260516-r0 so:libc.musl-x86_64.so.1 so:libncursesw.so.6
+p:so:libpanelw.so.6=6.6
+
+C:Q1IMTJDqnSCp3ToE3q3yxsT2QjNkM=
+P:libssl3
+V:3.5.9-r0
+A:x86_64
+S:381860
+I:843640
+T:SSL shared libraries
+U:https://www.openssl.org/
+L:Apache-2.0
+o:openssl
+m:Natanael Copa <ncopa@alpinelinux.org>
+t:1790752173
+c:29b9ec24b1b5b39aeef51fa2a044210e2ec5258e
+k:100
+D:libcrypto3=3.5.9-r0 so:libc.musl-x86_64.so.1 so:libcrypto.so.3
+p:so:libssl.so.3=3
+
+C:Q1X3oq12RhKLoCzA1vuUZytoRWSNU=
+P:libstdc++
+V:15.2.0-r5
+A:x86_64
+S:961295
+I:2804104
+T:GNU C++ standard runtime library
+U:https://gcc.gnu.org
+L:GPL-2.0-or-later AND LGPL-2.1-or-later
+o:gcc
+m:Ariadne Conill <ariadne@dereferenced.org>
+t:1780084766
+c:423a8ad043d07f2c7546c8ec3e2b0384cda360ae
+D:so:libc.musl-x86_64.so.1 so:libgcc_s.so.1
+p:so:libstdc++.so.6=6.0.34
+
+C:Q1zoHFOiiws36XfRdKmvFr3Q6g86U=
+P:mpc1
+V:1.3.1-r1
+A:x86_64
+S:48549
+I:116336
+T:Multiprecision C library
+U:http://www.multiprecision.org/
+L:LGPL-3.0-or-later
+o:mpc1
+m:Natanael Copa <ncopa@alpinelinux.org>
+t:1681228881
+c:84a227baf001b6e0208e3352b294e4d7a40e93de
+D:so:libc.musl-x86_64.so.1 so:libgmp.so.10 so:libmpfr.so.6
+p:so:libmpc.so.3=3.3.1
+
+C:Q1DIHOsOi1lms8MPVXtY2cb+RvbvY=
+P:mpdecimal
+V:4.0.1-r0
+A:x86_64
+S:78803
+I:196552
+T:complete implementation of the General Decimal Arithmetic Specification
+U:https://www.bytereef.org/mpdecimal/index.html
+L:BSD-2-Clause
+o:mpdecimal
+m:Stefan Stutz <stutz@pm.me>
+t:1747406985
+c:c0519b85456e9b838e3142e1d233aab0b433b476
+D:so:libc.musl-x86_64.so.1 so:libgcc_s.so.1 so:libstdc++.so.6
+p:so:libmpdec++.so.4=4.0.1 so:libmpdec.so.4=4.0.1
+
+C:Q1WQj5oBtPWCI27xE1p9BXYXu0KnI=
+P:mpfr4
+V:4.2.2-r0
+A:x86_64
+S:313348
+I:677184
+T:multiple-precision floating-point library
+U:https://www.mpfr.org/
+L:LGPL-3.0-or-later
+o:mpfr4
+m:Natanael Copa <ncopa@alpinelinux.org>
+t:1749584851
+c:011955c827a3e7545ea82225e1f20c6a06617c7a
+D:so:libc.musl-x86_64.so.1 so:libgmp.so.10
+p:mpfr=4.2.2-r0 so:libmpfr.so.6=6.2.2
+
+C:Q1dw6DBNlY3O2Y12mX356Podtcoy8=
+P:musl
+V:1.2.6-r3
+A:x86_64
+S:415466
+I:670312
+T:the musl c library (libc) implementation
+U:https://musl.libc.org/
+L:MIT
+o:musl
+m:Natanael Copa <ncopa@alpinelinux.org>
+t:1792597816
+c:8f79d39391b46d6dbf1800fb68b8212a21d5ee2e
+p:so:libc.musl-x86_64.so.1=1
+
+C:Q1PZ4RzXe1w0HPaFCjOEetIyEr+y0=
+P:musl-dev
+V:1.2.6-r3
+A:x86_64
+S:3422063
+I:9904045
+T:the musl c library (libc) implementation (development files)
+U:https://musl.libc.org/
+L:MIT
+o:musl
+m:Natanael Copa <ncopa@alpinelinux.org>
+t:1792597816
+c:8f79d39391b46d6dbf1800fb68b8212a21d5ee2e
+D:musl=1.2.6-r3
+p:libc-dev=1.2.6-r3
+
+C:Q1nVUdgo6cjuUsWAHB1gRoKOvxV1I=
+P:ncurses-terminfo-base
+V:6.6_p20260516-r0
+A:x86_64
+S:22172
+I:103017
+T:Descriptions of common terminals
+U:https://invisible-island.net/ncurses/
+L:X11
+o:ncurses
+m:Milan P. Stanić <mps@arvanta.net>
+t:1779608199
+c:2cee8a7328d061418336ad327b512d96bcd7bc5e
+
+C:Q1oaZ/w6+9q971J6ubfYTPhCakAVI=
+P:oniguruma
+V:6.9.10-r0
+A:x86_64
+S:187199
+I:560856
+T:a regular expressions library
+U:https://github.com/kkos/oniguruma
+L:BSD-2-Clause
+o:oniguruma
+m:Francesco Colista <fcolista@alpinelinux.org>
+t:1739380646
+c:31082e89063dfb6b02af0b38c46af803a118137a
+D:so:libc.musl-x86_64.so.1
+p:so:libonig.so.5=5.5.0
+
+C:Q1KX8rnmRg5JAp+2ru8bRq90Ei6/s=
+P:pango
+V:1.57.1-r0
+A:x86_64
+S:266052
+I:640092
+T:library for layout and rendering of text
+U:https://www.pango.org/
+L:LGPL-2.1-or-later
+o:pango
+m:Simon Zeni <simon@bl4ckb0ne.ca>
+t:1776474062
+c:18857621f16b29e66140dace710d0ad4016d9a90
+D:so:libX11.so.6 so:libXft.so.2 so:libXrender.so.1 so:libc.musl-x86_64.so.1 so:libcairo.so.2 so:libfontconfig.so.1 so:libfreetype.so.6 so:libfribidi.so.0 so:libgio-2.0.so.0 so:libglib-2.0.so.0 so:libgobject-2.0.so.0 so:libharfbuzz.so.0
+p:so:libpango-1.0.so.0=0.5701.0 so:libpangocairo-1.0.so.0=0.5701.0 so:libpangoft2-1.0.so.0=0.5701.0 so:libpangoxft-1.0.so.0=0.5701.0
+
+C:Q19ZCDtVOYYWS3WYXdzXaBmXiu164=
+P:py3-iniconfig
+V:2.3.0-r1
+A:x86_64
+S:8101
+I:18335
+T:brain-dead simple config-ini parsing
+U:https://github.com/pytest-dev/iniconfig
+L:MIT
+o:py3-iniconfig
+m:Will Sinatra <wpsinatra@gmail.com>
+t:1774640349
+c:b435e246328144be4270de9c4382ec40d8972028
+D:python3~3.14
+p:py3.14:iniconfig=2.3.0-r1
+
+C:Q1aZ4wF0jdUnh1faD0o8GeusvAVIA=
+P:py3-packaging
+V:26.2-r0
+A:x86_64
+S:94553
+I:381974
+T:Core utilities for Python3 packages
+U:https://pypi.org/project/packaging
+L:Apache-2.0 AND BSD-2-Clause
+o:py3-packaging
+m:Peter Shkenev <santurysim@gmail.com>
+t:1777150353
+c:8752a7b58577daa7f37849591e675172eadb4055
+D:python3 py3-parsing python3~3.14
+p:py-packaging=26.2-r0 py3.14:packaging=26.2-r0
+
+C:Q1OZL9BuSltPZV0TpLpZwTQa4kPUQ=
+P:py3-parsing
+V:3.3.2-r1
+A:x86_64
+S:117462
+I:464007
+T:Object-oriented approach to text processing
+U:https://github.com/pyparsing/pyparsing
+L:MIT
+o:py3-parsing
+m:Natanael Copa <ncopa@alpinelinux.org>
+t:1774640348
+c:91175ae0a18da54ff1f4fbe77636c8d4ca7ec024
+D:python3 python3~3.14
+p:py-parsing=3.3.2-r1 py3.14:pyparsing=3.3.2-r1
+
+C:Q10Mtn8EKXUQ2mxp+lZhjbs/TV1bA=
+P:py3-pluggy
+V:1.6.0-r1
+A:x86_64
+S:19902
+I:66016
+T:Plugin management and hook calling for Python
+U:https://pluggy.readthedocs.io/en/latest/
+L:MIT
+o:py3-pluggy
+m:Stuart Cardall <developer@it-offshore.co.uk>
+t:1774640349
+c:9a092f3f44d4bb23737b4fee92e78092f7ba4b04
+D:python3~3.14
+p:py3.14:pluggy=1.6.0-r1
+
+C:Q1Sf1t70uwySnCK1FXlJiYsjwL8gs=
+P:py3-py
+V:1.11.0-r5
+A:x86_64
+S:86088
+I:305694
+T:Python3 library with cross-python path, ini-parsing, io, code, log facilities
+U:https://py.readthedocs.io
+L:MIT
+o:py3-py
+m:Patrycja Rosa <alpine@ptrcnull.me>
+t:1774640348
+c:b3791c1d825f1f0e7c6f0a8c97eb1a446e7769ab
+D:python3 python3~3.14
+p:py-py=1.11.0-r5 py3.14:py=1.11.0-r5
+
+C:Q17CXI4QrtfxToVc0senkpzzn1UzM=
+P:py3-pygments
+V:2.20.0-r0
+A:x86_64
+S:1094054
+I:4519818
+T:Syntax highlighting package written in Python
+U:https://pygments.org/
+L:BSD-2-Clause
+o:py3-pygments
+m:Julien Voisin <julien.voisin@dustri.org>
+t:1774901944
+c:6c26bdb30b887a803c06b3b635099ee21bc72190
+D:python3 python3~3.14
+p:py-pygments=2.20.0-r0 cmd:pygmentize-3=2.20.0-r0 cmd:pygmentize=2.20.0-r0 py3.14:pygments=2.20.0-r0
+
+C:Q13VOWqn7OYKCMPRLcp0Ck6myWaLA=
+P:py3-pytest
+V:9.0.3-r0
+A:x86_64
+S:348546
+I:1333382
+T:Python3 testing library
+U:https://docs.pytest.org/en/latest/
+L:MIT
+o:py3-pytest
+m:Achill Gilgenast <achill@achill.org>
+t:1775841260
+c:752bc0532f3a44abb93cb877eb5cc8d9822f7da8
+D:py3-iniconfig py3-packaging py3-pluggy py3-py py3-pygments python3~3.14
+p:pytest=9.0.3-r0 cmd:py.test-3=9.0.3-r0 cmd:py.test=9.0.3-r0 cmd:pytest-3=9.0.3-r0 cmd:pytest=9.0.3-r0 py3.14:_pytest=9.0.3-r0 py3.14:pytest=9.0.3-r0
+
+C:Q1UaM77hL7qkXZ2V+G1dOpShl5egU=
+P:py3-pytest-cov
+V:5.0.0-r2
+A:x86_64
+S:21923
+I:67272
+T:Pytest plugin for measuring coverage
+U:https://github.com/pytest-dev/pytest-cov
+L:MIT
+o:py3-pytest-cov
+m:TBK <alpine@jjtc.eu>
+t:1774640351
+c:a5c11b35d797244bba9243ead84d3eb4a68ca6c2
+D:py3-pytest py3-coverage python3~3.14
+p:pytest-cov=5.0.0-r2 py3.14:pytest_cov=5.0.0-r2
+
+C:Q1DWfJAvIuESkAOzVP34ixk0N8s+A=
+P:py3-pytest-env
+V:1.6.0-r1
+A:x86_64
+S:10784
+I:26216
+T:Pytest plugin for adding environment variables
+U:https://github.com/MobileDynasty/pytest-env
+L:MIT
+o:py3-pytest-env
+m:Galen Abell <galen@galenabell.com>
+t:1774640351
+c:d794585c121cfc72cdbe62c57b5a33c58cef1dac
+D:python3 py3-dotenv py3-pytest python3~3.14
+p:py3.14:pytest_env=1.6.0-r1
+
+C:Q1w9sJYLD11HxeuR2P5MyjTaxbrdA=
+P:py3-pytest-forked
+V:1.6.0-r4
+A:x86_64
+S:6153
+I:9209
+T:extracted --boxed from pytest-xdist to ensure backward compat
+U:https://github.com/pytest-dev/pytest-forked
+L:MIT
+o:py3-pytest-forked
+m:Dmitry Romanenko <dmitry@romanenko.in>
+t:1774640352
+c:0d0db64dd82272e96eb03aab6638b9f7811830a3
+D:py3-pytest python3~3.14
+p:pytest-forked=1.6.0-r4 py3.14:pytest_forked=1.6.0-r4
+
+C:Q1m3FkwbrF6YwtaPvK816xXkCx9Ug=
+P:py3-pytest-mock
+V:3.15.1-r1
+A:x86_64
+S:10873
+I:33779
+T:Thin-wrapper around the mock package for easier use with py.test
+U:https://github.com/pytest-dev/pytest-mock
+L:MIT
+o:py3-pytest-mock
+m:Andy Postnikov <apostnikov@gmail.com>
+t:1774640351
+c:f57a5b1ee548dfb0b6d58d6b52f1f56bd6e3cd51
+D:py3-mock py3-pytest python3~3.14
+p:pytest-mock=3.15.1-r1 py3.14:pytest_mock=3.15.1-r1
+
+C:Q1qR6TLOHOeKpZq16OtjrM14Ket0Q=
+P:py3-pytest-pyc
+V:9.0.3-r0
+A:x86_64
+S:741112
+I:1886892
+T:Precompiled Python bytecode for py3-pytest
+U:https://docs.pytest.org/en/latest/
+L:MIT
+o:py3-pytest
+m:Achill Gilgenast <achill@achill.org>
+t:1775841260
+c:752bc0532f3a44abb93cb877eb5cc8d9822f7da8
+D:python3~3.14
+i:py3-pytest=9.0.3-r0 pyc
+
+C:Q1V4/TFxqHyerI7aig3YI/LAOsAHc=
+P:py3-pytest-xdist
+V:3.8.0-r1
+A:x86_64
+S:38091
+I:145739
+T:pytest xdist plugin for distributed testing and loop-on-failing modes
+U:https://pytest-xdist.readthedocs.io
+L:MIT
+o:py3-pytest-xdist
+m:Dmitry Romanenko <dmitry@romanenko.in>
+t:1774640351
+c:f3dfad6e6e6354b3367087cd3967d5a94fa9b03d
+D:py3-execnet py3-pytest python3~3.14
+p:pytest-xdist=3.8.0-r1 py3.14:xdist=3.8.0-r1
+
+C:Q1NN2I5sUMrXRCS/HMuJ8t3+9QOso=
+P:python3
+V:3.14.8-r0
+A:x86_64
+S:8388442
+I:23554306
+T:High-level scripting language
+U:https://www.python.org/
+L:PSF-2.0
+o:python3
+m:Natanael Copa <ncopa@alpinelinux.org>
+t:1790855546
+c:bc27f38b89f034547fd7da4dba62eeb6a0daeb3b
+D:libssl3>=3.3.0 libexpat>=2.8.0 so:libbz2.so.1 so:libc.musl-x86_64.so.1 so:libcrypto.so.3 so:libexpat.so.1 so:libffi.so.8 so:libgdbm_compat.so.4 so:liblzma.so.5 so:libmpdec.so.4 so:libncursesw.so.6 so:libpanelw.so.6 so:libreadline.so.8 so:libsqlite3.so.0 so:libssl.so.3 so:libz.so.1
+p:pythonispython3=3.14.8-r0 cmd:pydoc3.14=3.14.8-r0 cmd:pydoc3=3.14.8-r0 cmd:python3.14=3.14.8-r0 cmd:python3=3.14.8-r0 cmd:python=3.14.8-r0 so:libpython3.14.so.1.0=1.0 so:libpython3.so=0
+
+C:Q1ImD/X1cPSLy7tCw8o+CkIPRXKro=
+P:python3-dbg
+V:3.14.8-r0
+A:x86_64
+S:17209001
+I:42234184
+T:High-level scripting language (debug symbols)
+U:https://www.python.org/
+L:PSF-2.0
+o:python3
+m:Natanael Copa <ncopa@alpinelinux.org>
+t:1790855546
+c:bc27f38b89f034547fd7da4dba62eeb6a0daeb3b
+D:!python3-gdbm<3.14.8-r0 !python3-gdbm>3.14.8-r0 !python3<3.14.8-r0 !python3>3.14.8-r0
+
+C:Q14Yu89rli8jNLEVQxPjpj8dVGAW0=
+P:python3-dev
+V:3.14.8-r0
+A:x86_64
+S:58725777
+I:105569889
+T:High-level scripting language (development files)
+U:https://www.python.org/
+L:PSF-2.0
+o:python3
+m:Natanael Copa <ncopa@alpinelinux.org>
+t:1790855546
+c:bc27f38b89f034547fd7da4dba62eeb6a0daeb3b
+D:python3=3.14.8-r0 pkgconfig
+p:cmd:python-config=3.14.8-r0 cmd:python3-config=3.14.8-r0 cmd:python3.14-config=3.14.8-r0 pc:python-3.14-embed=3.14 pc:python-3.14=3.14 pc:python3-embed=3.14 pc:python3=3.14
+
+C:Q16+e9pPjB+rClZNUQu6X3mo7nICU=
+P:python3-doc
+V:3.14.8-r0
+A:x86_64
+S:15846
+I:22598
+T:High-level scripting language (documentation)
+U:https://www.python.org/
+L:PSF-2.0
+o:python3
+m:Natanael Copa <ncopa@alpinelinux.org>
+t:1790855546
+c:bc27f38b89f034547fd7da4dba62eeb6a0daeb3b
+i:docs python3=3.14.8-r0
+
+C:Q1DGwQ/KUUjNXX7lM6WRaep1+29/M=
+P:python3-gdbm
+V:3.14.8-r0
+A:x86_64
+S:9429
+I:27264
+T:Python backend for GNU gdbm
+U:https://www.python.org/
+L:PSF-2.0
+o:python3
+m:Natanael Copa <ncopa@alpinelinux.org>
+t:1790855546
+c:bc27f38b89f034547fd7da4dba62eeb6a0daeb3b
+D:libssl3>=3.3.0 libexpat>=2.8.0 so:libc.musl-x86_64.so.1 so:libgdbm.so.6
+
+C:Q10emO1byM/HL/F2WNqkLGcI9wux0=
+P:python3-idle
+V:3.14.8-r0
+A:x86_64
+S:1234451
+I:4212572
+T:IDE for Python3 using Tkinter
+U:https://wiki.python.org/moin/TkInter
+L:PSF-2.0
+o:python3-tkinter
+m:Jingyun Hua <huajingyun@loongson.cn>
+t:1790855546
+c:cb851926e9801dfd37ecd5247156bcc1ef750a58
+D:python3-tkinter=3.14.8-r0 python3 python3-tests
+p:cmd:idle3.14=3.14.8-r0 cmd:idle=3.14.8-r0
+
+C:Q1MgO/ybewDyjFtXMxB4S6JNXetqg=
+P:python3-pyc
+V:3.14.8-r0
+A:x86_64
+S:1314
+I:0
+T:High-level scripting language (install .pyc cache files)
+U:https://www.python.org/
+L:PSF-2.0
+o:python3
+m:Natanael Copa <ncopa@alpinelinux.org>
+t:1790855546
+c:bc27f38b89f034547fd7da4dba62eeb6a0daeb3b
+D:python3-pycache-pyc0=3.14.8-r0 pyc
+i:python3=3.14.8-r0
+
+C:Q1MWKq8KirrFH8CR5AQjQy+sNiXXA=
+P:python3-pycache-pyc0
+V:3.14.8-r0
+A:x86_64
+S:4489386
+I:11655208
+T:High-level scripting language (.pyc pycache files)
+U:https://www.python.org/
+L:PSF-2.0
+o:python3
+m:Natanael Copa <ncopa@alpinelinux.org>
+t:1790855546
+c:bc27f38b89f034547fd7da4dba62eeb6a0daeb3b
+
+C:Q1n70TfAKm/fzSot+KwubRepKKlls=
+P:python3-pycache-pyc1
+V:3.14.8-r0
+A:x86_64
+S:4472512
+I:11611963
+T:High-level scripting language (.opt-1.pyc pycache files)
+U:https://www.python.org/
+L:PSF-2.0
+o:python3
+m:Natanael Copa <ncopa@alpinelinux.org>
+t:1790855546
+c:bc27f38b89f034547fd7da4dba62eeb6a0daeb3b
+
+C:Q1fH+810IBYyvbXeP6pRVAc/QOKIM=
+P:python3-pycache-pyc2
+V:3.14.8-r0
+A:x86_64
+S:3886002
+I:10111845
+T:High-level scripting language (.opt-2.pyc pycache files)
+U:https://www.python.org/
+L:PSF-2.0
+o:python3
+m:Natanael Copa <ncopa@alpinelinux.org>
+t:1790855546
+c:bc27f38b89f034547fd7da4dba62eeb6a0daeb3b
+
+C:Q1ZSJmJHPlf83JQcsftAt/RyaOSKo=
+P:python3-tests
+V:3.14.8-r0
+A:x86_64
+S:39989116
+I:161891340
+T:The test modules from the main python package
+U:https://www.python.org/
+L:PSF-2.0
+o:python3
+m:Natanael Copa <ncopa@alpinelinux.org>
+t:1790855546
+c:bc27f38b89f034547fd7da4dba62eeb6a0daeb3b
+D:libssl3>=3.3.0 libexpat>=2.8.0
+
+C:Q1sibA/PBa4OoYIMWS+ZxUzte5nQE=
+P:python3-tkinter
+V:3.14.8-r0
+A:x86_64
+S:100807
+I:377714
+T:A graphical user interface for the Python programming language
+U:https://wiki.python.org/moin/TkInter
+L:PSF-2.0
+o:python3-tkinter
+m:Jingyun Hua <huajingyun@loongson.cn>
+t:1790855546
+c:cb851926e9801dfd37ecd5247156bcc1ef750a58
+D:so:libc.musl-x86_64.so.1 so:libtcl8.6.so so:libtk8.6.so
+
+C:Q1KZSSUc3PGP1rFDm74tPxoT+2un8=
+P:python3-tkinter-pyc
+V:3.14.8-r0
+A:x86_64
+S:347860
+I:1162253
+T:Precompiled Python bytecode for python3-tkinter
+U:https://wiki.python.org/moin/TkInter
+L:PSF-2.0
+o:python3-tkinter
+m:Jingyun Hua <huajingyun@loongson.cn>
+t:1790855546
+c:cb851926e9801dfd37ecd5247156bcc1ef750a58
+i:python3-tkinter=3.14.8-r0 pyc
+
+C:Q1lFsW43i8AORNidTegSS7p2R/300=
+P:readline
+V:8.3.3-r1
+A:x86_64
+S:127194
+I:299476
+T:GNU readline library
+U:https://tiswww.cwru.edu/php/chet/readline/rltop.html
+L:GPL-3.0-or-later
+o:readline
+m:qaqland <qaq@qaq.land>
+t:1769144791
+c:a854c03acdac188901fb012f7acbee70a36e8041
+D:so:libc.musl-x86_64.so.1 so:libncursesw.so.6
+p:so:libreadline.so.8=8.3
+
+C:Q192MM6zfCMrZgmGGuq2zbnNEg5vo=
+P:sqlite-libs
+V:3.53.4-r0
+A:x86_64
+S:877769
+I:1640464
+T:C library that implements an SQL database engine (libraries)
+U:https://www.sqlite.org/
+L:blessing
+o:sqlite
+m:Jingyun Hua <huajingyun@loongson.cn>
+t:1787333779
+c:a9c3ba8b9129ec0f294d0a9bf538c2f1632bb016
+D:so:libc.musl-x86_64.so.1
+p:so:libsqlite3.so.0=3.53.4
+
+C:Q1rbLNQtNA/2p5ChLXKd4vDjdgp8w=
+P:uwsgi-python3
+V:2.0.31-r2
+A:x86_64
+S:64628
+I:182880
+T:uWSGI plugin for Python 3
+U:https://projects.unbit.it/uwsgi/
+L:GPL-2.0-only WITH GCC-exception-2.0
+o:uwsgi
+m:Natanael Copa <ncopa@alpinelinux.org>
+t:1789143938
+c:1ecbc46db394e4fb6c8e22a4682d943c6ec07a98
+D:uwsgi python3~3.14 so:libc.musl-x86_64.so.1 so:libpython3.14.so.1.0
+p:uwsgi-python=2.0.31-r2 py3.14:uwsgidecorators=2.0.31-r2
+
+C:Q1hQEGWxhighYwF0xmO0WXRGLCluE=
+P:xz-libs
+V:5.8.4-r0
+A:x86_64
+S:118503
+I:227192
+T:Library and CLI tools for XZ and LZMA compressed files (libraries)
+U:https://tukaani.org/xz/
+L:GPL-2.0-or-later AND 0BSD AND Public-Domain AND LGPL-2.1-or-later
+o:xz
+m:Natanael Copa <ncopa@alpinelinux.org>
+t:1788989067
+c:0c088d609f9fe69eedd6b4c7f4b99cdad847c20a
+D:so:libc.musl-x86_64.so.1
+p:so:liblzma.so.5=5.8.4
+
+C:Q1T1JcjMIE+EuLTKQNs744mVjwVsY=
+P:zlib
+V:1.3.2-r1
+A:x86_64
+S:56210
+I:108376
+T:A compression/decompression Library
+U:https://zlib.net/
+L:Zlib
+o:zlib
+m:Natanael Copa <ncopa@alpinelinux.org>
+t:1791318860
+c:0afa2da0e8c8051c6f8f64a7a388e5a259904245
+D:so:libc.musl-x86_64.so.1
+p:so:libz.so.1=1.3.2
+
+C:Q1lWnOOpfEEJ6OU93enz4b0nJhNUA=
+P:zstd-libs
+V:1.5.7-r2
+A:x86_64
+S:376646
+I:714432
+T:Zstandard - Fast real-time compression algorithm (libraries)
+U:https://facebook.github.io/zstd/
+L:BSD-3-Clause OR GPL-2.0-or-later
+o:zstd
+m:Natanael Copa <ncopa@alpinelinux.org>
+t:1753704404
+c:3c6e2ee2b16f403d53eab39c4426eb61f003c322
+D:so:libc.musl-x86_64.so.1
+p:so:libzstd.so.1=1.5.7
+

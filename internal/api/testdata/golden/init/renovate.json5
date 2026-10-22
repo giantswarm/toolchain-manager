@@ -1,0 +1,14 @@
+{
+  // Renovate keeps the workflows' pinned actions current. A toolchain's pins
+  // (its base, packages and binaries) are the toolchain-manager's:
+  // update_toolchain changes them together with the Dockerfile's spec line,
+  // so Renovate leaves the toolchains/ Dockerfiles alone.
+  $schema: 'https://docs.renovatebot.com/renovate-schema.json',
+  extends: [
+    'config:recommended',
+    'helpers:pinGitHubActionDigests',
+  ],
+  enabledManagers: [
+    'github-actions',
+  ],
+}

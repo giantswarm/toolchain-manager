@@ -1,0 +1,107 @@
+# yamllint disable rule:truthy
+# Release per toolchain. On every push to main, each toolchain whose
+# directory changed since its latest <name>/v* tag is checked with the
+# toolchain contract, published as a multi-arch image to
+# registry.example.com/example/toolchains/<name> under its next version and `latest`, then
+# tagged <name>/vX.Y.Z with a GitHub Release. The merged pull request's
+# squash subject sets the bump: a breaking change (`type!:` or a
+# `BREAKING CHANGE` footer) the major, a `feat` the minor, anything else the
+# patch; a toolchain's first version is v0.1.0. Diffing against the
+# toolchain's own last tag lets a failed run catch up on the next one.
+#
+# The registry's credentials are the repository's secrets REGISTRY_USERNAME
+# and REGISTRY_PASSWORD.
+name: Toolchain release
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: {}
+
+permissions:
+  contents: write       # push tags and create the GitHub Releases
+
+concurrency:
+  group: toolchain-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-26.04
+    env:
+      REGISTRY: registry.example.com/example/toolchains
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Checkout the contract check
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          repository: giantswarm/agent-toolchains
+          ref: ca7f96683cc249789175b663748d4ec48e6c14f9
+          path: .toolchain-contract
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1  # v4.4.0
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069  # v4.4.1
+
+      - name: Log in to the registry
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f  # v4.6.0
+        with:
+          registry: registry.example.com
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      - name: Check, publish and tag changed toolchains
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          message=$(git log -1 --format=%B HEAD)
+          subject=$(head -1 <<<"$message")
+          if grep -qE '^[a-z]+(\([^)]*\))?!:' <<<"$subject" || grep -q '^BREAKING[ -]CHANGE' <<<"$message"; then
+            bump=major
+          elif grep -qE '^feat(\([^)]*\))?:' <<<"$subject"; then
+            bump=minor
+          else
+            bump=patch
+          fi
+          echo "bump from the squash subject: ${bump}"
+
+          for dir in $(find toolchains -mindepth 2 -maxdepth 2 -name Dockerfile -printf '%h\n' | sort); do
+            name="${dir#toolchains/}"
+            latest=$(git tag -l "${name}/v*" --sort=-v:refname \
+              | grep -E "^${name}/v[0-9]+\.[0-9]+\.[0-9]+$" | head -1 || true)
+            if [ -z "$latest" ]; then
+              version=v0.1.0
+            elif git diff --quiet "$latest" HEAD -- "$dir"; then
+              echo "${dir}: unchanged since ${latest}"
+              continue
+            else
+              IFS='.' read -r major minor patch <<< "${latest#"${name}"/v}"
+              case "$bump" in
+                major) version="v$((major + 1)).0.0" ;;
+                minor) version="v${major}.$((minor + 1)).0" ;;
+                *)     version="v${major}.${minor}.$((patch + 1))" ;;
+              esac
+            fi
+
+            echo "::group::${name} ${version}"
+            docker build -t "toolchain-contract/${name}:check" "$dir"
+            .toolchain-contract/scripts/toolchain-contract.sh "toolchain-contract/${name}:check" .toolchain-contract/harnesses
+            docker buildx build --platform linux/amd64,linux/arm64 --push \
+              -t "${REGISTRY}/${name}:${version}" -t "${REGISTRY}/${name}:latest" "$dir"
+            git tag "${name}/${version}"
+            git push origin "refs/tags/${name}/${version}"
+            notes=(--generate-notes)
+            [ -z "$latest" ] || notes+=(--notes-start-tag "$latest")
+            gh release create "${name}/${version}" --title "${name}/${version}" --verify-tag "${notes[@]}"
+            echo "::endgroup::"
+          done
