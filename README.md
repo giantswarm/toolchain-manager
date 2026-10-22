@@ -18,10 +18,14 @@ A **toolchain** is a named set of tools (`go`, `node`) published as its own OCI 
 | `remove_source` | Removes an added source, as the person who added it or an owner |
 | `list_toolchains` | Lists the toolchains the offered sources have published, each with its versions (newest first) and image |
 | `describe_toolchain` | Describes a published toolchain at a version (the newest by default): its image, Harnesses, tools with their version commands, pinned packages and binaries, egress, and whether the manager wrote its Dockerfile |
+| `create_toolchain` | Opens a pull request, as the person, in an offered source that adds a toolchain: the Dockerfile `add_packages` or `add_binary` returned, or a hand-written one, at `toolchains/<name>/Dockerfile` on the branch `toolchain/<name>` |
+| `toolchain_build_status` | Follows a toolchain's pull request: queued, checking, checked, then after the merge building, published (version, image, release) or failed with the failing job's log |
 
-The package and Dockerfile tools return files and write to no repository.
+The package and Dockerfile tools return files and write to no repository; `create_toolchain` is the one that writes, as the person.
 
 A published toolchain is a GitHub Release `<name>/vX.Y.Z` of an offered source, which its release workflow creates only for a toolchain that keeps the contract, its image `<registry>/<name>:X.Y.Z`. `list_toolchains` and `describe_toolchain` read the releases and the released Dockerfile (`toolchains/<name>/Dockerfile` at the tag), whose `io.giantswarm.toolchain.*` labels are the image's, with the person's App token: a person sees the toolchains of the sources the App's installation grants them, and a source it does not reach is listed as unreachable.
+
+`create_toolchain` commits the Dockerfile with the person's App token, so the pull request is theirs and needs their push access; a toolchain the source already has, or one with an open pull request, is refused. `toolchain_build_status` reads the pull request's check runs and commit statuses (GitHub Actions and CircleCI alike) and, once merged, the merge commit's, its `<name>/vX.Y.Z` tag and that tag's GitHub Release. Any failed job fails the build, its page the log. With `wait` it reads again every 5 seconds until the state moves, at most 25 seconds, inside muster's default call timeout.
 
 ## Sources and who calls
 
