@@ -1,0 +1,41 @@
+# yamllint disable rule:truthy
+# The Dockerfiles the toolchain-manager writes keep the toolchain contract:
+# every golden toolchain under internal/api/testdata/golden/toolchains (the
+# add_packages and add_binary output its tests pin) and init_source's example
+# toolchain are built and checked with giantswarm/agent-toolchains' contract
+# check beside each Harness image they declare, at the commit the source
+# template pins (internal/source.ContractRef).
+name: Toolchain contract
+
+on:
+  pull_request: {}
+  merge_group: {}
+  push:
+    branches:
+      - main
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    name: Toolchain contract
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - name: The contract check's commit
+        id: ref
+        run: echo "ref=$(sed -n 's/^const ContractRef = "\([0-9a-f]*\)"$/\1/p' internal/source/source.go)" >>"$GITHUB_OUTPUT"
+
+      - name: Checkout the contract check
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          repository: giantswarm/agent-toolchains
+          ref: ${{ steps.ref.outputs.ref }}
+          path: .toolchain-contract
+
+      - name: Every written Dockerfile keeps the contract
+        run: scripts/check-golden-toolchains.sh .toolchain-contract

@@ -1,0 +1,970 @@
+C:Q1Jfbo8RPB7U0eGepWEaq9JyVWZIU=
+P:agensgraph-plpython3
+V:2.15.0-r0
+A:x86_64
+S:46372
+I:120552
+T:PL/Python3 procedural language for AgensGraph
+U:https://bitnine.net/agensgraph/
+L:PostgreSQL AND Apache-2.0
+o:agensgraph
+m:Jakub Jirutka <jakub@jirutka.cz>
+t:1745852487
+c:8564abfad8147c02c060d8b1523dc0ecc78c584b
+D:agensgraph=2.15.0-r0 python3 so:libc.musl-x86_64.so.1 so:libpython3.12.so.1.0
+p:so:agensgraph:plpython3.so=0
+
+C:Q1K9vWIbWrSQHxPU+nisuQYe72Lvs=
+P:doggo
+V:1.0.5-r10
+A:x86_64
+S:4975719
+I:13482136
+T:A modern command-line DNS client, additionally supporting DoH, DoT and DNSCrypt protocols
+U:https://github.com/mr-karan/doggo
+L:GPL-3.0-only
+o:doggo
+m:Celeste <cielesti@protonmail.com>
+t:1768509320
+c:1bc8dfc63cf800c7eb2516197fd0b13ff862a073
+D:so:libc.musl-x86_64.so.1
+p:cmd:doggo=1.0.5-r10
+
+C:Q1l0lysZeuip7pQTanwisdSDV7bVw=
+P:ergo
+V:2.16.0-r5
+A:x86_64
+S:5078541
+I:13397289
+T:A modern IRC server (daemon/ircd) written in Go
+U:https://ergo.chat
+L:MIT
+o:ergo
+m:Kay Thomas <kaythomas@pm.me>
+t:1768509320
+c:1bc8dfc63cf800c7eb2516197fd0b13ff862a073
+D:/bin/sh so:libc.musl-x86_64.so.1
+p:cmd:ergo=2.16.0-r5
+
+C:Q1/bXZo44/Vzw03qHKhtQQEohV9O4=
+P:go
+V:1.24.13-r0
+A:x86_64
+S:67208847
+I:203098008
+T:Go programming language compiler
+U:https://go.dev/
+L:BSD-3-Clause
+o:go
+t:1771921959
+c:2b363deb3f78291a00284dc86460f89f33a2dcff
+D:binutils gcc musl-dev
+p:go-bootstrap=1.24.13-r0 cmd:go=1.24.13-r0 cmd:gofmt=1.24.13-r0
+
+C:Q1y/hEaICXsLtQMpdoDp5jnC69QCs=
+P:goawk
+V:1.29.1-r10
+A:x86_64
+S:1328572
+I:3287512
+T:POSIX-compliant AWK interpreter written in Go
+U:https://github.com/benhoyt/goawk
+L:MIT
+o:goawk
+m:Celeste <cielesti@protonmail.com>
+t:1768509320
+c:1bc8dfc63cf800c7eb2516197fd0b13ff862a073
+p:cmd:goawk=1.29.1-r10
+
+C:Q1spNO1vbCnVZxbe0TCDCJTnKQ8Uo=
+P:godap
+V:2.10.6-r4
+A:x86_64
+S:4551079
+I:12075776
+T:A complete TUI for LDAP
+U:https://github.com/Macmod/godap
+L:MIT
+o:godap
+m:omni <omni+alpine@hack.org>
+t:1768509320
+c:1bc8dfc63cf800c7eb2516197fd0b13ff862a073
+D:so:libc.musl-x86_64.so.1
+p:cmd:godap=2.10.6-r4
+
+C:Q1l30RY2jYP3EVadPKVJDB5lA7Wvo=
+P:gojq
+V:0.12.17-r10
+A:x86_64
+S:1811214
+I:4775544
+T:Pure Go implementation of jq
+U:https://github.com/itchyny/gojq
+L:MIT
+o:gojq
+m:Michał Polański <michal@polanski.me>
+t:1768509320
+c:1bc8dfc63cf800c7eb2516197fd0b13ff862a073
+p:cmd:gojq=0.12.17-r10
+
+C:Q1Bn7KAWLODU36lhRJ5IBkjVFkSZ4=
+P:gojq-zsh-completion
+V:0.12.17-r10
+A:x86_64
+S:2565
+I:2605
+T:Zsh completions for gojq
+U:https://github.com/itchyny/gojq
+L:MIT
+o:gojq
+m:Michał Polański <michal@polanski.me>
+t:1768509320
+c:1bc8dfc63cf800c7eb2516197fd0b13ff862a073
+i:gojq=0.12.17-r10 zsh
+
+C:Q1L3BcIdklMa8QsBNMEYinFttSSuc=
+P:gom
+V:0.5.4-r0
+A:x86_64
+S:52285
+I:139175
+T:GObject Data Mapper
+U:https://wiki.gnome.org/Projects/Gom
+L:LGPL-2.1-or-later
+o:gom
+m:Natanael Copa <ncopa@alpinelinux.org>
+t:1758211119
+c:d7c1c31a1d3ba9a038038d828814c0d30d045eb9
+D:python3~3.12 so:libc.musl-x86_64.so.1 so:libgio-2.0.so.0 so:libglib-2.0.so.0 so:libgobject-2.0.so.0 so:libsqlite3.so.0
+p:so:libgom-1.0.so.0=0.1.0
+
+C:Q1kpnhWrYOSawDDDCH4xcGGG123VQ=
+P:gonic
+V:0.16.4-r9
+A:x86_64
+S:6924540
+I:18000648
+T:Subsonic compatible music streaming server
+U:https://github.com/sentriz/gonic
+L:GPL-3.0-or-later
+o:gonic
+m:Alex McGrath <amk@amk.ie>
+t:1768509320
+c:1bc8dfc63cf800c7eb2516197fd0b13ff862a073
+D:ffmpeg /bin/sh so:libc.musl-x86_64.so.1 so:libgcc_s.so.1 so:libsqlite3.so.0 so:libstdc++.so.6 so:libtag.so.2
+p:cmd:gonic=0.16.4-r9
+
+C:Q1mDKutel6wfrLLkxwkx8I4vScBPY=
+P:gopls
+V:0.18.0-r8
+A:x86_64
+S:10318305
+I:28797208
+T:Language server for Go programming language
+U:https://github.com/golang/tools/blob/master/gopls
+L:BSD-3-Clause
+o:gopls
+m:David Florness <david@florness.com>
+t:1768509320
+c:1bc8dfc63cf800c7eb2516197fd0b13ff862a073
+D:so:libc.musl-x86_64.so.1
+p:cmd:gopls=0.18.0-r8
+
+C:Q17RUhl3nDMla/fU0gBJ5JmHi/a6w=
+P:gops
+V:0.3.28-r17
+A:x86_64
+S:2259910
+I:6051728
+T:List and diagnose Go processes currently running on your system
+U:https://github.com/google/gops
+L:BSD-3-Clause
+o:gops
+m:Michał Polański <michal@polanski.me>
+t:1768509320
+c:1bc8dfc63cf800c7eb2516197fd0b13ff862a073
+D:so:libc.musl-x86_64.so.1
+p:cmd:gops=0.3.28-r17
+
+C:Q11y6/lCPRors2R7HTYYKifDKxqQ8=
+P:gopt
+V:10.0-r0
+A:x86_64
+S:4542
+I:13936
+T:C library for parsing POSIX and GNU style command line arguments
+U:http://www.purposeful.co.uk/software/gopt/
+L:TFL
+o:gopt
+m:Jakub Jirutka <jakub@jirutka.cz>
+t:1631560330
+c:dba819e494c5413523f514c1bbcfd129019d640e
+D:so:libc.musl-x86_64.so.1
+p:so:libgopt.so.10=10
+
+C:Q1mISStGUDSRhAkd36OAlBaBRRnA8=
+P:gosec
+V:2.22.3-r7
+A:x86_64
+S:8580361
+I:24109272
+T:Go source code static analyzer, focusing on security
+U:https://github.com/securego/gosec
+L:Apache-2.0
+o:gosec
+m:Clayton Craft <clayton@craftyguy.net>
+t:1768509320
+c:1bc8dfc63cf800c7eb2516197fd0b13ff862a073
+D:so:libc.musl-x86_64.so.1
+p:cmd:gosec=2.22.3-r7
+
+C:Q1OZMMUIDNREL/q2WznPtZ3oQpHeg=
+P:gosu
+V:1.17-r15
+A:x86_64
+S:1225355
+I:3171800
+T:Simple Go-based setuid+setgid+setgroups+exec
+U:https://github.com/tianon/gosu
+L:Apache-2.0
+o:gosu
+m:Integral <integral@member.fsf.org>
+t:1768509320
+c:1bc8dfc63cf800c7eb2516197fd0b13ff862a073
+p:cmd:gosu=1.17-r15
+
+C:Q1/JGCWVTtwJ5gwmT6tr/9boaQXE8=
+P:got
+V:0.118-r0
+A:x86_64
+S:1847518
+I:3966272
+T:A VCS which prioritizes ease of use and simplicity over flexibility
+U:https://gameoftrees.org/
+L:ISC
+o:got
+m:omni <omni+alpine@hack.org>
+t:1757547858
+c:b47aee38fd431940f51f159387bd93ef75c2d950
+D:so:libbsd.so.0 so:libc.musl-x86_64.so.1 so:libcrypto.so.3 so:libevent_core-2.1.so.7 so:libmd.so.0 so:libncursesw.so.6 so:libpanelw.so.6 so:libtls.so.8 so:libuuid.so.1 so:libz.so.1
+p:cmd:gitwrapper=0.118-r0 cmd:got=0.118-r0 cmd:gotadmin=0.118-r0 cmd:gotctl=0.118-r0 cmd:gotd=0.118-r0 cmd:gotsh=0.118-r0 cmd:gotwebd=0.118-r0 cmd:tog=0.118-r0
+
+C:Q1QHleGR/+SE9dKsKDPhUCcCoBtJc=
+P:gotop
+V:4.2.0-r26
+A:x86_64
+S:3526343
+I:9169512
+T:Terminal based graphical activity monitor
+U:https://github.com/xxxserxxx/gotop
+L:AGPL-3.0-or-later
+o:gotop
+m:Steven Guikal <void@fluix.one>
+t:1768509320
+c:1bc8dfc63cf800c7eb2516197fd0b13ff862a073
+D:procps so:libc.musl-x86_64.so.1
+p:cmd:gotop=4.2.0-r26
+
+C:Q1XVvyFXHrbLnPeD6gobz6drfbxNM=
+P:govc
+V:0.51.0-r5
+A:x86_64
+S:9760730
+I:39539896
+T:vSphere CLI built on top of govmomi
+U:https://github.com/vmware/govmomi/blob/main/govc/README.md
+L:Apache-2.0
+o:govc
+m:Patrycja Rosa <alpine@ptrcnull.me>
+t:1768509320
+c:1bc8dfc63cf800c7eb2516197fd0b13ff862a073
+D:so:libc.musl-x86_64.so.1
+p:cmd:govc=0.51.0-r5
+
+C:Q1lJmU7syMfNR4ipu1HgxRxICvcBw=
+P:helm
+V:3.18.4-r5
+A:x86_64
+S:24426460
+I:82848216
+T:The Kubernetes Package Manager
+U:https://helm.sh/
+L:Apache-2.0
+o:helm
+m:techknowlogick <techknowlogick@gitea.com>
+t:1768509320
+c:1bc8dfc63cf800c7eb2516197fd0b13ff862a073
+D:so:libc.musl-x86_64.so.1
+p:cmd:helm=3.18.4-r5
+
+C:Q1yJxqmt6eXJ9q53CzHRw7n1t+G6M=
+P:helm-bash-completion
+V:3.18.4-r5
+A:x86_64
+S:6221
+I:16033
+T:Bash completions for helm
+U:https://helm.sh/
+L:Apache-2.0
+o:helm
+m:techknowlogick <techknowlogick@gitea.com>
+t:1768509320
+c:1bc8dfc63cf800c7eb2516197fd0b13ff862a073
+i:helm=3.18.4-r5 bash-completion
+
+C:Q1B+YECp5APpPij2zIk6mGCjguoDo=
+P:helm-fish-completion
+V:3.18.4-r5
+A:x86_64
+S:4402
+I:9509
+T:Fish completions for helm
+U:https://helm.sh/
+L:Apache-2.0
+o:helm
+m:techknowlogick <techknowlogick@gitea.com>
+t:1768509320
+c:1bc8dfc63cf800c7eb2516197fd0b13ff862a073
+i:helm=3.18.4-r5 fish
+
+C:Q1ZGcSH3TC0Ngw8OMrWLlkHWxxjPo=
+P:helm-zsh-completion
+V:3.18.4-r5
+A:x86_64
+S:4118
+I:7694
+T:Zsh completions for helm
+U:https://helm.sh/
+L:Apache-2.0
+o:helm
+m:techknowlogick <techknowlogick@gitea.com>
+t:1768509320
+c:1bc8dfc63cf800c7eb2516197fd0b13ff862a073
+i:helm=3.18.4-r5 zsh
+
+C:Q1xBbgVgEPe2V0NWiGhYUkvQfErtQ=
+P:hugo
+V:0.147.2-r5
+A:x86_64
+S:19111019
+I:59792352
+T:Fast and flexible static site generator written in Go
+U:https://gohugo.io/
+L:Apache-2.0
+o:hugo
+m:Thomas Boerger <thomas@webhippie.de>
+t:1768509320
+c:1bc8dfc63cf800c7eb2516197fd0b13ff862a073
+D:so:libc.musl-x86_64.so.1 so:libgcc_s.so.1 so:libstdc++.so.6
+p:cmd:hugo=0.147.2-r5
+
+C:Q10CLCu0RaLY2Eie05yF6rv28k5cY=
+P:jql
+V:8.0.5-r0
+A:x86_64
+S:473037
+I:984568
+T:A JSON Query Language CLI tool
+U:https://github.com/yamafaktory/jql
+L:MIT
+o:jql
+m:Jakub Jirutka <jakub@jirutka.cz>
+t:1745791946
+c:e89f055796f00d0923e7538825bbfc8f3bbab880
+D:so:libc.musl-x86_64.so.1 so:libgcc_s.so.1
+p:cmd:jql=8.0.5-r0
+
+C:Q1ojj6vj7xBX9vulHjFZvHO0LvoUk=
+P:kigo
+V:25.04.2-r0
+A:x86_64
+S:484529
+I:681150
+T:An open-source implementation of the popular Go game
+U:https://kde.org/applications/games/kigo/
+L:LicenseRef-KDE-Accepted-GPL AND GFDL-1.2-only
+o:kigo
+m:team/kde <bribbers@disroot.org>
+t:1750591604
+c:f82362f19529d4800871a2d31b37f58aa2b6a6a4
+D:so:libKDEGames6.so.6 so:libKF6ConfigCore.so.6 so:libKF6ConfigGui.so.6 so:libKF6ConfigWidgets.so.6 so:libKF6CoreAddons.so.6 so:libKF6Crash.so.6 so:libKF6DBusAddons.so.6 so:libKF6I18n.so.6 so:libKF6IconThemes.so.6 so:libKF6KIOWidgets.so.6 so:libKF6NewStuffWidgets.so.6 so:libKF6TextWidgets.so.6 so:libKF6WidgetsAddons.so.6 so:libKF6XmlGui.so.6 so:libQt6Core.so.6 so:libQt6Gui.so.6 so:libQt6Svg.so.6 so:libQt6Widgets.so.6 so:libc.musl-x86_64.so.1 so:libstdc++.so.6
+p:cmd:kigo=25.04.2-r0
+
+C:Q1HIlTUvqyEvlNfb5tmEDoKEOifDI=
+P:lego
+V:4.23.1-r6
+A:x86_64
+S:28361031
+I:123708808
+T:Let's Encrypt client and ACME library written in Go
+U:https://github.com/go-acme/lego
+L:MIT
+o:lego
+m:Carlo Landmeter <clandmeter@alpinelinux.org>
+t:1768509320
+c:1bc8dfc63cf800c7eb2516197fd0b13ff862a073
+D:ca-certificates so:libc.musl-x86_64.so.1
+p:cmd:lego=4.23.1-r6
+
+C:Q1cqUJdwnqkbm9Uxm9xjT/crzgmQs=
+P:libpeas-python3
+V:1.36.0-r6
+A:x86_64
+S:11214
+I:34600
+T:GObject-based plugin system
+U:https://wiki.gnome.org/Projects/Libpeas
+L:LGPL-2.1-or-later
+o:libpeas
+m:Krassy Boykinov <kboykinov@teamcentrixx.com>
+t:1713004231
+c:a970dd8aec4f5489a03c22474e0d9f7a32dd7c60
+D:py3-gobject3 so:libc.musl-x86_64.so.1 so:libgio-2.0.so.0 so:libglib-2.0.so.0 so:libgobject-2.0.so.0 so:libpeas-1.0.so.0 so:libpython3.12.so.1.0
+
+C:Q1L6X1gwkD8XpQJ5/lbB83I/WDBdg=
+P:libpeas2-python3
+V:2.0.7-r0
+A:x86_64
+S:10785
+I:34600
+T:GObject-based plugin system
+U:https://wiki.gnome.org/Projects/Libpeas
+L:LGPL-2.1-or-later
+o:libpeas2
+m:Krassy Boykinov <kboykinov@teamcentrixx.com>
+t:1747122062
+c:2297a9d21a083a9ba9ffc2a2ee14ee0d39a014d7
+D:py3-gobject3 so:libc.musl-x86_64.so.1 so:libgio-2.0.so.0 so:libglib-2.0.so.0 so:libgobject-2.0.so.0 so:libpeas-2.so.0 so:libpython3.12.so.1.0
+
+C:Q1NMDq+C9o84LN/k67TdChIIJyJBI=
+P:py3-pytest-aiohttp
+V:1.1.0-r0
+A:x86_64
+S:9832
+I:21274
+T:pytest plugin for aiohttp support
+U:https://github.com/aio-libs/pytest-aiohttp/
+L:Apache-2.0
+o:py3-pytest-aiohttp
+m:Patrycja Rosa <alpine@ptrcnull.me>
+t:1744495082
+c:27d1fcbef9a76ac46b9307df6d423de18ee85058
+D:py3-aiohttp py3-pytest-asyncio python3~3.12
+p:py3.12:pytest_aiohttp=1.1.0-r0
+
+C:Q1pPWwg+cNJwTTtn2M3/61kgHBIYs=
+P:py3-pytest-asyncio
+V:0.25.0-r0
+A:x86_64
+S:20147
+I:61574
+T:Pytest support for asyncio
+U:https://github.com/pytest-dev/pytest-asyncio
+L:Apache-2.0
+o:py3-pytest-asyncio
+m:Natanael Copa <ncopa@alpinelinux.org>
+t:1734433559
+c:69222c692f6b662089f79c9d63c74517ebda44a8
+D:py3-pytest python3~3.12
+p:py3.12:pytest_asyncio=0.25.0-r0
+
+C:Q15T7axnk5KH5MGzoOh3lFuWnIqMI=
+P:py3-pytest-black
+V:0.3.12-r7
+A:x86_64
+S:5828
+I:8474
+T:pytest plugin to enable format checking with black
+U:https://github.com/shopkeep/pytest-black
+L:MIT
+o:py3-pytest-black
+m:Steven Guikal <void@fluix.one>
+t:1712915962
+c:71a773b0618ce60d276a3df74ed69e6bd6d13237
+D:py3-pytest black py3-toml python3~3.12
+
+C:Q1pPYDgkNvRVVsUdUmMncbM0dq74M=
+P:py3-pytest-celery
+V:1.2.1-r0
+A:x86_64
+S:34034
+I:132948
+T:Official pytest plugin for Celery.
+U:https://github.com/celery/pytest-celery
+L:BSD-3-Clause
+o:py3-pytest-celery
+m:Antoine Martin (ayakael) <dev@ayakael.net>
+t:1755017055
+c:5bc4b2314c6419ed947cb4c27c8195c255416c32
+D:py3-redis py3-python-memcached py3-pytest-docker-tools py3-tenacity py3-psutil python3~3.12
+p:py3.12:pytest_celery=1.2.1-r0
+
+C:Q1MMpPMJRFRFZB1wuqOCnMn8OyVYk=
+P:py3-pytest-click
+V:1.1.0-r0
+A:x86_64
+S:5100
+I:6546
+T:Pytest plugin for Click
+U:https://github.com/Stranger6667/pytest-click
+L:MIT
+o:py3-pytest-click
+m:Antoine Martin (ayakael) <dev@ayakael.net>
+t:1713639991
+c:23792960591387d3c6061edc69852815caaae4c6
+D:py3-click py3-pytest python3~3.12
+p:py3.12:pytest_click=1.1.0-r0
+
+C:Q1rCGTfhmRIiS1P/qKHyKAojVCppo=
+P:py3-pytest-cov
+V:5.0.0-r0
+A:x86_64
+S:20068
+I:63837
+T:Pytest plugin for measuring coverage
+U:https://github.com/pytest-dev/pytest-cov
+L:MIT
+o:py3-pytest-cov
+m:TBK <alpine@jjtc.eu>
+t:1713862774
+c:7bcc4ae70e99e0ee44f2d96828c7a387624947e4
+D:py3-pytest py3-coverage python3~3.12
+p:pytest-cov=5.0.0-r0 py3.12:pytest_cov=5.0.0-r0
+
+C:Q1txxCLKQvEknFEiRZmRC6PG3qpCU=
+P:py3-pytest-django
+V:4.11.1-r0
+A:x86_64
+S:23281
+I:77325
+T:Django plugin for pytest
+U:https://pytest-django.readthedocs.io/
+L:BSD-3-Clause
+o:py3-pytest-django
+m:Patrycja Rosa <alpine@ptrcnull.me>
+t:1744049490
+c:bff0d0ea3f9afc1346ccf07757e21fa223922e4e
+D:py3-pytest python3~3.12
+p:py3.12:pytest_django=4.11.1-r0
+
+C:Q1Moae36slnYR8Vcw6pJpfLQ79PAE=
+P:py3-pytest-env
+V:1.1.5-r0
+A:x86_64
+S:6549
+I:10856
+T:Pytest plugin for adding environment variables
+U:https://github.com/MobileDynasty/pytest-env
+L:MIT
+o:py3-pytest-env
+m:Galen Abell <galen@galenabell.com>
+t:1726877721
+c:d9e05e04be9089e67ac6b0a3c9e1b046321d2747
+D:python3 py3-pytest python3~3.12
+p:py3.12:pytest_env=1.1.5-r0
+
+C:Q1hb8UGSHgtAFw2hDgC+qd/ogJsq0=
+P:py3-pytest-forked
+V:1.6.0-r2
+A:x86_64
+S:5346
+I:8062
+T:extracted --boxed from pytest-xdist to ensure backward compat
+U:https://github.com/pytest-dev/pytest-forked
+L:MIT
+o:py3-pytest-forked
+m:Dmitry Romanenko <dmitry@romanenko.in>
+t:1712915962
+c:71a773b0618ce60d276a3df74ed69e6bd6d13237
+D:py3-pytest python3~3.12
+p:pytest-forked=1.6.0-r2 py3.12:pytest_forked=1.6.0-r2
+
+C:Q1UVU0RN24ym3E24beJukxR0u4q5E=
+P:py3-pytest-httpx
+V:0.35.0-r0
+A:x86_64
+S:19006
+I:71088
+T:send responses to httpx
+U:https://colin-b.github.io/pytest_httpx/
+L:MIT
+o:py3-pytest-httpx
+m:Duncan Bellamy <dunk@denkimushi.com>
+t:1733783511
+c:a3edbc27514477f3c869b4b385bb45a00a95d900
+D:py3-httpx py3-pytest python3~3.12
+p:py3.12:pytest_httpx=0.35.0-r0
+
+C:Q1Imlumeo4b3BX03iA/F/WvAHzgoo=
+P:py3-pytest-isort
+V:4.0.0-r1
+A:x86_64
+S:7311
+I:14713
+T:pytest plugin to check import ordering using isort
+U:https://pypi.org/project/pytest-isort/
+L:BSD-3-Clause
+o:py3-pytest-isort
+m:Patrycja Rosa <alpine@ptrcnull.me>
+t:1746319320
+c:5a6bc04eac082203cc51a520df703fdfedffc476
+D:py3-pytest py3-isort python3~3.12
+p:py3.12:pytest_isort=4.0.0-r1
+
+C:Q1TW/m3ExdStxcYoq6z6I4K+dVPSU=
+P:py3-pytest-mock
+V:3.10.0-r3
+A:x86_64
+S:9199
+I:28811
+T:Thin-wrapper around the mock package for easier use with py.test
+U:https://github.com/pytest-dev/pytest-mock
+L:MIT
+o:py3-pytest-mock
+m:Andy Postnikov <apostnikov@gmail.com>
+t:1712915962
+c:71a773b0618ce60d276a3df74ed69e6bd6d13237
+D:py3-mock py3-pytest python3~3.12
+p:pytest-mock=3.10.0-r3 py3.12:pytest_mock=3.10.0-r3
+
+C:Q1F3oWv25gp+V04CIIb0XEHtmAeh0=
+P:py3-pytest-mpi
+V:0.6-r3
+A:x86_64
+S:5861
+I:11491
+T:pytest plugin to collect information from tests
+U:https://pytest-mpi.readthedocs.io/en/latest/
+L:BSD-3-Clause
+o:py3-pytest-mpi
+m:Bart Ribbers <bribbers@disroot.org>
+t:1712915962
+c:71a773b0618ce60d276a3df74ed69e6bd6d13237
+D:py3-mpi4py python3 python3~3.12
+p:py3.12:pytest_mpi=0.6-r3
+
+C:Q1cImll+KiWPw9hXJiPjCyrtlU1ik=
+P:py3-pytest-mypy
+V:0.10.3-r3
+A:x86_64
+S:8243
+I:16991
+T:Pytest plugin for mypy
+U:https://github.com/realpython/pytest-mypy
+L:MIT
+o:py3-pytest-mypy
+m:fossdd <fossdd@pwned.life>
+t:1740930965
+c:1c0c18f899d27f9ac0ecc1eef50631d91de67d1b
+D:py3-attrs py3-filelock py3-mypy py3-pytest python3~3.12
+
+C:Q1kGuBAc/xfvw9mjV+zWBv2hm86qg=
+P:py3-pytest-qt
+V:4.4.0-r2
+A:x86_64
+S:34218
+I:133412
+T:pytest plugin for Qt (PyQt5/PyQt6 and PySide2/PySide6) application testing
+U:https://github.com/pytest-dev/pytest-qt
+L:MIT
+o:py3-pytest-qt
+m:Iztok Fister, Jr. <iztok@iztok-jr-fister.eu>
+t:1734776547
+c:73992a209c88a43e5f256acd58188823d31ef84f
+D:python3 py3-pytest py3-typing-extensions python3~3.12
+p:py3.12:pytestqt=4.4.0-r2
+
+C:Q1pmC+EQx/3Gxe17GD2LCDqzgpB/E=
+P:py3-pytest-qt-pyc
+V:4.4.0-r2
+A:x86_64
+S:57959
+I:157987
+T:Precompiled Python bytecode for py3-pytest-qt
+U:https://github.com/pytest-dev/pytest-qt
+L:MIT
+o:py3-pytest-qt
+m:Iztok Fister, Jr. <iztok@iztok-jr-fister.eu>
+t:1734776547
+c:73992a209c88a43e5f256acd58188823d31ef84f
+D:python3 py3-pytest py3-typing-extensions python3~3.12
+i:py3-pytest-qt=4.4.0-r2 pyc
+
+C:Q17mzQElfA7sCKg1utkDDP1nkrwE4=
+P:py3-pytest-repeat
+V:0.9.4-r2
+A:x86_64
+S:5021
+I:7816
+T:pytest plugin for repeating tests
+U:https://github.com/pytest-dev/pytest-repeat
+L:BSD-3-Clause
+o:py3-pytest-repeat
+m:Jonas <spameier+alpine@proton.me>
+t:1748519146
+c:1af79a3789d918462096ffb0aa0d9a1d726571f9
+D:py3-pytest python3 python3~3.12
+
+C:Q1+Skivt4CVa6ftZK2ZfCFWrUiZPE=
+P:py3-pytest-runner
+V:6.0.1-r1
+A:x86_64
+S:8325
+I:15846
+T:Invoke py.test as distutils command
+U:https://github.com/pytest-dev/pytest-runner
+L:MIT
+o:py3-pytest-runner
+t:1712915962
+c:71a773b0618ce60d276a3df74ed69e6bd6d13237
+D:python3 py3-pytest py3-setuptools python3~3.12
+p:py3.12:ptr=6.0.1-r1
+
+C:Q1cH/maua7s5F5SoakQSNVjPE8etg=
+P:py3-pytest-socket
+V:0.7.0-r1
+A:x86_64
+S:7856
+I:16361
+T:Pytest Plugin to disable socket calls during tests
+U:https://github.com/miketheman/pytest-socket
+L:MIT
+o:py3-pytest-socket
+m:Bart Ribbers <bribbers@disroot.org>
+t:1747081455
+c:c23c0cf37ce3c7967ef912b7226962e1749aec70
+D:py3-pytest python3~3.12
+
+C:Q1rXh1zV5ezdPxrsxRFrOa89edJ30=
+P:py3-pytest-sugar
+V:0.9.7-r1
+A:x86_64
+S:10196
+I:27892
+T:A plugin for pytest that changes the default look and feel of pytest (e.g. progressbar, show tests that fail instantly)
+U:https://github.com/Teemu/pytest-sugar/
+L:BSD-3-Clause
+o:py3-pytest-sugar
+m:Bart Ribbers <bribbers@disroot.org>
+t:1712915962
+c:71a773b0618ce60d276a3df74ed69e6bd6d13237
+D:py3-packaging py3-pytest py3-termcolor python3 python3~3.12
+
+C:Q1dBDc37GAD/auzf7B2n8C/6hDPcw=
+P:py3-pytest-trio
+V:0.8.0-r3
+A:x86_64
+S:18783
+I:66686
+T:pytest plugin for trio
+U:https://github.com/python-trio/pytest-trio
+L:MIT OR Apache-2.0
+o:py3-pytest-trio
+m:Bart Ribbers <bribbers@disroot.org>
+t:1712915962
+c:71a773b0618ce60d276a3df74ed69e6bd6d13237
+D:python3 py3-pytest py3-trio py3-outcome py3-async_generator python3~3.12
+p:py3.12:pytest_trio=0.8.0-r3
+
+C:Q1lGG3JfIddStVKCpm2JVaMbsiXTo=
+P:py3-pytest-vcr
+V:1.0.2-r4
+A:x86_64
+S:4331
+I:6224
+T:py.test integration with vcr.py
+U:https://github.com/ktosiek/pytest-vcr
+L:MIT
+o:py3-pytest-vcr
+m:Kevin Daudt <kdaudt@alpinelinux.org>
+t:1712915962
+c:71a773b0618ce60d276a3df74ed69e6bd6d13237
+D:python3 py3-vcrpy python3~3.12
+
+C:Q1wpRz7Sl+UNMz8wGzP1Gj4S86jkI=
+P:py3-pytest-xdist
+V:3.6.1-r0
+A:x86_64
+S:37276
+I:143405
+T:pytest xdist plugin for distributed testing and loop-on-failing modes
+U:https://pytest-xdist.readthedocs.io
+L:MIT
+o:py3-pytest-xdist
+m:Dmitry Romanenko <dmitry@romanenko.in>
+t:1714929426
+c:69f9134d8094e2baf7a6a6a865432ca644614956
+D:py3-execnet py3-pytest python3~3.12
+p:pytest-xdist=3.6.1-r0 py3.12:xdist=3.6.1-r0
+
+C:Q1tSRjZEvYuhWMqXa/n72Dj7T6+BU=
+P:py3-python3-saml
+V:1.16.0-r1
+A:x86_64
+S:85574
+I:408422
+T:Saml Python Toolkit. Add SAML support to your Python software using this library
+U:https://github.com/SAML-Toolkits/python3-saml
+L:MIT
+o:py3-python3-saml
+m:Antoine Martin (ayakael) <dev@ayakael.net>
+t:1723798009
+c:65d635db735030580d087f65655785cccfc0cd3f
+D:py3-xmlsec py3-isodate py3-lxml python3~3.12
+p:py3-onelogin=1.16.0-r1 py3.12:onelogin=1.16.0-r1
+
+C:Q1qm1726vmLdObsvdN0b8NF04Mavk=
+P:py3-python3-saml-pyc
+V:1.16.0-r1
+A:x86_64
+S:92098
+I:245035
+T:Precompiled Python bytecode for py3-python3-saml
+U:https://github.com/SAML-Toolkits/python3-saml
+L:MIT
+o:py3-python3-saml
+m:Antoine Martin (ayakael) <dev@ayakael.net>
+t:1723798009
+c:65d635db735030580d087f65655785cccfc0cd3f
+D:py3-xmlsec py3-isodate py3-lxml python3~3.12
+i:py3-python3-saml=1.16.0-r1 pyc
+
+C:Q1dJ9j7mUIfekegpZx6k0R2E+uZI0=
+P:py3-sphinxcontrib-jquery
+V:4.1-r2
+A:x86_64
+S:122353
+I:388295
+T:Sphinx jquery extension
+U:https://github.com/sphinx-contrib/jquery
+L:0BSD
+o:py3-sphinxcontrib-jquery
+m:Fabian Affolter <fabian@affolter-engineering.ch>
+t:1712951984
+c:aedb3412c1fe2bc9a1057edb2a37d1c62b8c2da2
+D:py3-sphinx python3~3.12
+p:py-sphinxcontrib-images=4.1-r2
+
+C:Q1hZzTrbPsSCLmgi/7VJj0AshGIUs=
+P:py3-sphinxcontrib-jquery-pyc
+V:4.1-r2
+A:x86_64
+S:3175
+I:2112
+T:Precompiled Python bytecode for py3-sphinxcontrib-jquery
+U:https://github.com/sphinx-contrib/jquery
+L:0BSD
+o:py3-sphinxcontrib-jquery
+m:Fabian Affolter <fabian@affolter-engineering.ch>
+t:1712951984
+c:aedb3412c1fe2bc9a1057edb2a37d1c62b8c2da2
+D:py3-sphinx python3~3.12
+i:py3-sphinxcontrib-jquery=4.1-r2 pyc
+
+C:Q1JzjYnYFgL8rif07n7E2G+UX3hzQ=
+P:python3-idle
+V:3.12.15-r0
+A:x86_64
+S:1166495
+I:4033189
+T:IDE for Python3 using Tkinter
+U:https://wiki.python.org/moin/TkInter
+L:PSF-2.0
+o:python3-tkinter
+m:Jingyun Hua <huajingyun@loongson.cn>
+t:1790849153
+c:455d73534c3bbb89e54547f15efde2810101d653
+D:python3-tkinter=3.12.15-r0 python3 python3-tests
+p:cmd:idle3.12=3.12.15-r0 cmd:idle=3.12.15-r0
+
+C:Q1F17RRVZA02w60eU6Fwd9ytjKJk8=
+P:python3-tkinter
+V:3.12.15-r0
+A:x86_64
+S:110314
+I:429672
+T:A graphical user interface for the Python programming language
+U:https://wiki.python.org/moin/TkInter
+L:PSF-2.0
+o:python3-tkinter
+m:Jingyun Hua <huajingyun@loongson.cn>
+t:1790849153
+c:455d73534c3bbb89e54547f15efde2810101d653
+D:so:libc.musl-x86_64.so.1 so:libtcl8.6.so so:libtk8.6.so
+
+C:Q1Aa/eK7PXUK5oPHibxVLmODej7eo=
+P:python3-tkinter-pyc
+V:3.12.15-r0
+A:x86_64
+S:409011
+I:1416850
+T:Precompiled Python bytecode for python3-tkinter
+U:https://wiki.python.org/moin/TkInter
+L:PSF-2.0
+o:python3-tkinter
+m:Jingyun Hua <huajingyun@loongson.cn>
+t:1790849153
+c:455d73534c3bbb89e54547f15efde2810101d653
+i:python3-tkinter=3.12.15-r0 pyc
+
+C:Q1c21wlLLS2raWsjNYGrKhcTfOfBY=
+P:python3-tkinter-tests
+V:3.12.15-r0
+A:x86_64
+S:973158
+I:4838180
+T:The test modules from the main python package for tkinter
+U:https://wiki.python.org/moin/TkInter
+L:PSF-2.0
+o:python3-tkinter
+m:Jingyun Hua <huajingyun@loongson.cn>
+t:1790849153
+c:455d73534c3bbb89e54547f15efde2810101d653
+
+C:Q1fo0F8oL7Xontv0ozxSyBnz/QzN0=
+P:unit-python3
+V:1.35.0-r1
+A:x86_64
+S:51923
+I:120720
+T:python3 module for NGINX Unit
+U:https://unit.nginx.org/
+L:Apache-2.0
+o:unit
+m:Andy Postnikov <apostnikov@gmail.com>
+t:1770298108
+c:4a7c26099f102d3d150506e88186ccbc9f81ee8f
+D:unit=1.35.0-r1 so:libc.musl-x86_64.so.1 so:libpython3.12.so.1.0
+
+C:Q1pNmuUXSQmcCYOxmD3MJkBKgPlA8=
+P:wego
+V:2.3-r10
+A:x86_64
+S:2755695
+I:6833024
+T:A weather app for the terminal
+U:https://github.com/schachmat/wego
+L:ISC
+o:wego
+m:omni <omni+alpine@hack.org>
+t:1768509320
+c:1bc8dfc63cf800c7eb2516197fd0b13ff862a073
+D:so:libc.musl-x86_64.so.1
+p:cmd:wego=2.3-r10
+
+C:Q17UCMBEkV5He/nXrEBswzLb3sD7A=
+P:yq-go
+V:4.47.2-r3
+A:x86_64
+S:4717059
+I:12465544
+T:Portable command-line YAML processor written in Go
+U:https://github.com/mikefarah/yq
+L:MIT
+o:yq-go
+m:Kevin Daudt <kdaudt@alpinelinux.org>
+t:1768509320
+c:1bc8dfc63cf800c7eb2516197fd0b13ff862a073
+D:so:libc.musl-x86_64.so.1
+p:yq=4.47.2-r3 cmd:yq=4.47.2-r3
+
