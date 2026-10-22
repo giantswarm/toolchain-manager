@@ -193,13 +193,17 @@ func TestCreateOpensAPullRequestAsThePerson(t *testing.T) {
 func TestCreateHoldsAHandWrittenDockerfileToItsName(t *testing.T) {
 	c, f := acmeCatalog(t)
 	goDockerfile := strings.ReplaceAll(handWritten, `name="go"`, `name="gotools"`)
+	helmGolden, err := os.ReadFile("../api/testdata/golden/toolchains/helm/Dockerfile")
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	for name, tc := range map[string]struct{ name, dockerfile, err string }{
 		"no name":               {dockerfile: goDockerfile, err: "name the toolchain"},
 		"name and label differ": {name: "golang", dockerfile: goDockerfile, err: `"gotools", want "golang"`},
 		"the source has it":     {name: "helm", dockerfile: strings.ReplaceAll(handWritten, `name="go"`, `name="helm"`), err: "already has toolchain helm"},
 		"not a toolchain name":  {name: "Go", dockerfile: goDockerfile, err: "want [a-z0-9-]"},
-		"a written one renamed": {name: "other", dockerfile: mustRead(t, "../api/testdata/golden/toolchains/helm/Dockerfile"), err: "is toolchain helm, not other"},
+		"a written one renamed": {name: "other", dockerfile: string(helmGolden), err: "is toolchain helm, not other"},
 		"its own name":          {name: "gotools", dockerfile: goDockerfile},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -227,15 +231,6 @@ func TestCreateHoldsAHandWrittenDockerfileToItsName(t *testing.T) {
 	if err != nil || none.Status != sources.StatusGrantRequired {
 		t.Errorf("without the grant = %+v, %v", none, err)
 	}
-}
-
-func mustRead(t *testing.T, path string) string {
-	t.Helper()
-	b, err := os.ReadFile(path)
-	if err != nil {
-		t.Fatal(err)
-	}
-	return string(b)
 }
 
 func TestBuildStatusFollowsThePullRequestToItsRelease(t *testing.T) {
