@@ -39,7 +39,7 @@ const GrantHeaderPrefix = "X-Muster-Grant-" //nolint:gosec // G101: a header nam
 
 // IDTokenHeader is where muster puts the person's Dex ID token on every call
 // to a registration with auth.forwardIdentity.
-const IDTokenHeader = "X-Muster-Id-Token"
+const IDTokenHeader = "X-Muster-Id-Token" //nolint:gosec // G101: a header name, not a credential
 
 // grantCacheTTL is how long a verified App token is trusted without asking
 // GitHub again: a revoked one must stop working soon.
