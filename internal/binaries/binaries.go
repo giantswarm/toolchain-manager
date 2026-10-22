@@ -13,6 +13,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"net/netip"
 	"net/url"
 	"regexp"
 	"strings"
@@ -239,22 +240,51 @@ func (r Resolver) sha256(ctx context.Context, u string) (string, error) {
 	return hex.EncodeToString(h.Sum(nil)), nil
 }
 
+// specialPurpose are the IANA special-purpose address blocks: nothing a
+// public download is served from.
+var specialPurpose = func() []netip.Prefix {
+	var out []netip.Prefix
+	for _, p := range []string{
+		"0.0.0.0/8", "10.0.0.0/8", "100.64.0.0/10", "127.0.0.0/8", "169.254.0.0/16",
+		"172.16.0.0/12", "192.0.0.0/24", "192.0.2.0/24", "192.88.99.0/24", "192.168.0.0/16",
+		"198.18.0.0/15", "198.51.100.0/24", "203.0.113.0/24", "224.0.0.0/4", "240.0.0.0/4",
+		"::/128", "::1/128", "::ffff:0:0/96", "64:ff9b::/96", "64:ff9b:1::/48", "100::/64",
+		"2001::/23", "2001:db8::/32", "2002::/16", "fc00::/7", "fe80::/10", "ff00::/8",
+	} {
+		out = append(out, netip.MustParsePrefix(p))
+	}
+	return out
+}()
+
+// public reports whether addr is a globally routable address.
+func public(addr netip.Addr) bool {
+	addr = addr.Unmap()
+	if !addr.IsValid() || !addr.IsGlobalUnicast() {
+		return false
+	}
+	for _, p := range specialPurpose {
+		if p.Contains(addr) {
+			return false
+		}
+	}
+	return true
+}
+
 // PublicClient is an HTTP client that reaches public addresses only: a
-// download URL is the caller's, so a private, loopback, link-local or
-// unspecified address is refused when it is dialled, after any redirect and
-// DNS answer.
+// download URL is the caller's, so any address of a special-purpose block
+// (private, loopback, link-local, carrier-grade NAT, documentation, ...) is
+// refused when it is dialled, after any redirect and DNS answer. It uses no
+// proxy, whose address would hide the destination.
 func PublicClient(timeout time.Duration) *http.Client {
 	dialer := &net.Dialer{
 		Timeout: 30 * time.Second,
 		Control: func(_, address string, _ syscall.RawConn) error {
-			host, _, err := net.SplitHostPort(address)
+			ap, err := netip.ParseAddrPort(address)
 			if err != nil {
 				return err
 			}
-			ip := net.ParseIP(host)
-			if ip == nil || ip.IsPrivate() || ip.IsLoopback() || ip.IsLinkLocalUnicast() ||
-				ip.IsLinkLocalMulticast() || ip.IsUnspecified() || ip.IsMulticast() {
-				return fmt.Errorf("refusing to connect to %s: not a public address", host)
+			if !public(ap.Addr()) {
+				return fmt.Errorf("refusing to connect to %s: not a public address", ap.Addr())
 			}
 			return nil
 		},

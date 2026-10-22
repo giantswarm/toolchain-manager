@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"net/netip"
 	"strings"
 	"testing"
 	"time"
@@ -34,5 +35,19 @@ func TestPublicClientRefusesALoopbackAddress(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), "not a public address") {
 		t.Errorf("error %v, want the refusal", err)
+	}
+}
+
+func TestPublic(t *testing.T) {
+	for addr, want := range map[string]bool{
+		"140.82.121.4": true, "2606:50c0:8000::153": true,
+		"10.1.2.3": false, "100.64.0.1": false, "127.0.0.1": false, "169.254.169.254": false,
+		"192.168.1.1": false, "198.18.0.1": false, "0.0.0.0": false, "240.0.0.1": false,
+		"::1": false, "::ffff:10.0.0.1": false, "::ffff:127.0.0.1": false, "fd00::1": false,
+		"fe80::1": false, "64:ff9b::a00:1": false, "2002:a00:1::": false,
+	} {
+		if got := public(netip.MustParseAddr(addr)); got != want {
+			t.Errorf("public(%s) = %v, want %v", addr, got, want)
+		}
 	}
 }
