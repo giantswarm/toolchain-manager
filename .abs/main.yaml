@@ -1,0 +1,5 @@
+replace-chart-version-with-git: true
+generate-metadata: true
+chart-dir: ./helm/toolchain-manager
+destination: ./build
+helm-template-extra-values: ./helm/toolchain-manager/ci/ci-values.yaml
