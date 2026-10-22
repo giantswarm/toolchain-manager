@@ -26,8 +26,8 @@ const (
 	StateChecked = "checked"
 	// StateBuilding: merged, the release builds, checks and publishes.
 	StateBuilding = "building"
-	// StatePublished: the merge commit is released as <name>/vX.Y.Z and its
-	// image is in the source's registry.
+	// StatePublished: the merge commit is released as <name>/vX.Y.Z, its
+	// image is in the source's registry and every job passed.
 	StatePublished = "published"
 	// StateFailed: a job failed; Log is its log.
 	StateFailed = "failed"
@@ -158,9 +158,8 @@ func (c *Catalog) build(ctx context.Context, token string, src sources.Source, n
 // merge commit, its GitHub Release and its image in the source's registry,
 // beside the merge commit's jobs. A source may create the release before
 // its CI pushes the image (giantswarm/agent-toolchains' tag pipeline), so
-// published waits for the image; a registry that does not answer
-// anonymously, or not at all, is taken as published once every job
-// passed.
+// published waits for the image and for every job to pass; a registry that
+// does not answer anonymously, or not at all, leaves it to the jobs.
 func (c *Catalog) merged(ctx context.Context, token string, src sources.Source, b *Build) error {
 	tags, err := c.GitHub.TagsAt(ctx, token, src.Repository, b.Toolchain+"/v", b.Commit)
 	if err != nil && !errors.Is(err, github.ErrNotFound) {
@@ -191,9 +190,9 @@ func (c *Catalog) merged(ctx context.Context, token string, src sources.Source, 
 		pushed, err := c.imageExists(ctx, image)
 		if err != nil {
 			// Not answered (credentials, an address not public): the jobs tell.
-			pushed = jobs == StateUnreleased
+			pushed = true
 		}
-		if pushed {
+		if pushed && jobs == StateUnreleased {
 			b.State, b.Version, b.Image, b.ReleaseURL = StatePublished, m[2], image, r.HTMLURL
 		}
 		return nil

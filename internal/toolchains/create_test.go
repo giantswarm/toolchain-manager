@@ -286,6 +286,8 @@ func TestBuildStatusFollowsThePullRequestToItsRelease(t *testing.T) {
 	c.Registry = images
 	step(StateBuilding) // released, the image not pushed yet
 	images["registry.acme.io/acme-tools/jq:0.2.0"] = nil
+	step(StateBuilding) // the image pushed, its job still runs
+	f.jobs["merge"] = `[{"name":"Release","status":"completed","conclusion":"success"}]`
 	b = step(StatePublished)
 	if b.Version != "v0.2.0" || b.Image != "registry.acme.io/acme-tools/jq:0.2.0" || b.ReleaseURL == "" {
 		t.Errorf("published = %+v", b)
@@ -293,9 +295,10 @@ func TestBuildStatusFollowsThePullRequestToItsRelease(t *testing.T) {
 
 	// A registry that wants credentials: published once every job passed.
 	images["registry.acme.io/acme-tools/jq:0.2.0"] = registry.ErrUnknown
+	step(StatePublished)
+	f.jobs["merge"] = `[{"name":"Release","status":"in_progress"}]`
 	step(StateBuilding)
 	f.jobs["merge"] = `[{"name":"Release","status":"completed","conclusion":"success"}]`
-	step(StatePublished)
 
 	f.tags = `[]`
 	step(StateUnreleased)
