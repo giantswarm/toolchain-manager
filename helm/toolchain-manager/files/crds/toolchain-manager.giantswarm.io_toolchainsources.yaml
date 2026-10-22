@@ -1,0 +1,111 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.22.0
+  name: toolchainsources.toolchain-manager.giantswarm.io
+spec:
+  group: toolchain-manager.giantswarm.io
+  names:
+    kind: ToolchainSource
+    listKind: ToolchainSourceList
+    plural: toolchainsources
+    shortNames:
+    - tcs
+    singular: toolchainsource
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .spec.repository
+      name: Repository
+      type: string
+    - jsonPath: .status.phase
+      name: Phase
+      type: string
+    - jsonPath: .spec.addedBy
+      name: Added by
+      type: string
+    - jsonPath: .status.approvedBy
+      name: Approved by
+      type: string
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: ToolchainSource is a repository added as a source of toolchains.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: ToolchainSourceSpec is what the person who added the source
+              named.
+            properties:
+              addedBy:
+                description: AddedBy is the person who added the source.
+                type: string
+              registry:
+                description: |-
+                  Registry is the image repository prefix the source's toolchains
+                  publish under, <registry>/<name>.
+                type: string
+              repository:
+                description: Repository is the source's GitHub repository, owner/name.
+                pattern: ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$
+                type: string
+                x-kubernetes-validations:
+                - message: repository is immutable
+                  rule: self == oldSelf
+              slackChannel:
+                description: |-
+                  SlackChannel is the owning team's channel that approves the source's
+                  updates.
+                type: string
+              url:
+                description: URL is the repository's web address.
+                type: string
+            required:
+            - addedBy
+            - registry
+            - repository
+            - slackChannel
+            type: object
+          status:
+            description: ToolchainSourceStatus is the installation owner's review.
+            properties:
+              approvedAt:
+                description: ApprovedAt is when.
+                format: date-time
+                type: string
+              approvedBy:
+                description: ApprovedBy is the owner who approved the source.
+                type: string
+              phase:
+                description: Phase is Pending until the installation owner approves
+                  the source.
+                enum:
+                - Pending
+                - Approved
+                type: string
+            type: object
+        required:
+        - spec
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

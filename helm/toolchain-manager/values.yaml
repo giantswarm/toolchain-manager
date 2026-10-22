@@ -6,7 +6,110 @@
 #   https://docs.giantswarm.io/tutorials/fleet-management/app-platform/app-configuration/#basic-values-merging-example
 #
 image:
+  # -- Image repository below `registry.domain`.
   name: "giantswarm/toolchain-manager"
+  # -- Image tag; empty is the chart's appVersion.
   tag: ""
+  pullPolicy: IfNotPresent
 registry:
   domain: gsoci.azurecr.io
+
+replicaCount: 1
+
+mcp:
+  # -- Path of the MCP endpoint.
+  path: /mcp
+
+service:
+  port: 8080
+
+# -- How every MCP call is authenticated: muster forwards the person's Dex ID
+# token as its bearer (the MCPServer's `auth.forwardToken`). With
+# `auth.dex.issuerURL` set, every call needs a valid token and the source
+# tools are served; empty serves the package and Dockerfile tools only, to
+# anyone who reaches the Service.
+auth:
+  dex:
+    # -- Dex issuer URL, as the tokens name it.
+    issuerURL: ""
+    # -- Where the manager reaches Dex when the issuer's public name does not
+    # resolve in the cluster; empty is the issuer.
+    discoveryURL: ""
+    # -- Secret (name, key) in the release namespace holding the PEM CA of a
+    # Dex with a private certificate; empty name trusts the system roots.
+    caSecret:
+      name: ""
+      key: ca.crt
+  # -- OAuth client ids whose Dex ID tokens are accepted: the platform client
+  # and the audiences muster requires.
+  trustedAudiences: []
+
+# -- The installation's owners, who approve a source a person adds once
+# before its toolchains are offered: Dex groups and verified emails. Without
+# any, an added source is never approved.
+owners:
+  groups: []
+  emails: []
+
+# -- The toolchain sources the installation's configuration names, approved
+# by being named here: each a GitHub repository (owner/name), the registry
+# prefix its toolchains publish under, and the Slack channel of the team
+# that approves its updates.
+sources:
+  - repository: giantswarm/agent-toolchains
+    registry: gsoci.azurecr.io/giantswarm/agent-toolchains
+
+github:
+  # -- GitHub API.
+  api: https://api.github.com
+  # -- Provider App muster keeps the person's grant of the toolchain-manager's
+  # GitHub App as: muster attaches the person's token in
+  # `X-Muster-Grant-<app>` (an `aggregator.providerApps` entry of muster).
+  grantApp: github
+  # -- Where a repository's owner installs the App,
+  # https://github.com/apps/<slug>/installations/new; add_source names it.
+  appInstallURL: ""
+
+crds:
+  # -- Install the ToolchainSource CRD; kept on uninstall, so removing the
+  # chart never removes an added source.
+  install: true
+
+muster:
+  mcpServer:
+    # -- Register this server with muster: an `MCPServer` in the release
+    # namespace, its tools `x_<name>_<tool>`. Needs `auth.dex.issuerURL`.
+    enabled: false
+    # -- MCPServer name, the tools' prefix.
+    name: toolchain-manager
+    # -- Name the Dev Portal shows for this server.
+    displayName: Toolchain Manager
+    autoStart: true
+    description: "Toolchains for coding agents: sources, package search, binaries and the Dockerfile they are built from"
+    # -- Tool call timeout in seconds; 0 keeps muster's default.
+    timeout: 0
+    # -- Audiences muster requests at login and forwards in the token.
+    requiredAudiences: []
+    # -- Labels added to (and overriding) the MCPServer's.
+    labels: {}
+
+resources:
+  requests:
+    cpu: 20m
+    memory: 64Mi
+  limits:
+    memory: 256Mi
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65532
+  runAsGroup: 65532
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL

@@ -1,0 +1,45 @@
+{{- /*
+The ServiceAccount keeps the added sources in the release namespace once the
+tools checked the caller: a person gets no right on ToolchainSources here, so
+only an installation owner's approve_source records an approval (status).
+Nothing else is read or written.
+*/}}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "name" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "labels.common" . | nindent 4 }}
+automountServiceAccountToken: false
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "name" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "labels.common" . | nindent 4 }}
+rules:
+  - apiGroups: [toolchain-manager.giantswarm.io]
+    resources: [toolchainsources]
+    verbs: [get, list, create, delete]
+  - apiGroups: [toolchain-manager.giantswarm.io]
+    resources: [toolchainsources/status]
+    verbs: [update]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "name" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "labels.common" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "name" . }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "name" . }}
+    namespace: {{ .Release.Namespace }}

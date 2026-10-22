@@ -24,9 +24,13 @@ const instructions = "Build toolchains for coding agents. A toolchain is a named
 
 // NewMCPServer builds the MCP server of the service's tools.
 func NewMCPServer(svc *Service, version string) *mcpserver.MCPServer {
+	instr := instructions
+	if svc.ToolchainSources != nil {
+		instr += sourcesInstructions
+	}
 	s := mcpserver.NewMCPServer("toolchain-manager", version,
 		mcpserver.WithToolCapabilities(false),
-		mcpserver.WithInstructions(instructions),
+		mcpserver.WithInstructions(instr),
 	)
 	t := &tools{svc: svc}
 
@@ -89,6 +93,9 @@ func NewMCPServer(svc *Service, version string) *mcpserver.MCPServer {
 		mcp.WithBoolean("renovate", mcp.Description("Write renovate.json5 (default false)")),
 	}, hints(true, false)...)...), t.initSource)
 
+	if svc.ToolchainSources != nil {
+		addSourceTools(s, svc.ToolchainSources)
+	}
 	return s
 }
 

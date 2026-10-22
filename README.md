@@ -1,6 +1,6 @@
 # toolchain-manager
 
-MCP server that manages toolchains for coding agents: sources, package search, binaries and the written Dockerfile.
+MCP server that manages toolchains for coding agents: the installation's toolchain sources, package search, binaries and the written Dockerfile.
 
 A **toolchain** is a named set of tools (`go`, `node`) published as its own OCI image. A coding agent's Session mounts it read-only at `/opt/kagent/tools/<name>`, beside the unchanged image of the agent's Harness, with its `bin/` on `PATH`. A **toolchain source** is a git repository with a directory per toolchain whose CI checks, builds and publishes each one; [giantswarm/agent-toolchains](https://github.com/giantswarm/agent-toolchains) is the platform's own and holds the toolchain contract check every source runs.
 
@@ -12,8 +12,18 @@ A **toolchain** is a named set of tools (`go`, `node`) published as its own OCI 
 | `add_packages` | Adds packages to a toolchain, each pinned to its branch's version, and returns the Dockerfile |
 | `add_binary` | Adds a release binary (a GitHub release asset or a URL), pinned by version and SHA-256 per architecture, and returns the Dockerfile |
 | `init_source` | Renders a new toolchain source: layout, the contract check as a required CI workflow, the release workflow, optional Renovate, an example toolchain |
+| `list_sources` | Lists the installation's toolchain sources, configured and added, with whether their toolchains are offered |
+| `add_source` | Adds a GitHub repository the caller maintains, granted by the toolchain-manager's GitHub App, with the Slack channel that approves its updates |
+| `approve_source` | Approves an added source, as the installation's owner, once |
+| `remove_source` | Removes an added source, as the person who added it or an owner |
 
-The tools return files and write to no repository.
+The package and Dockerfile tools return files and write to no repository.
+
+## Sources and who calls
+
+The tools are called as the person through muster: the chart's `MCPServer` (`muster.mcpServer.enabled`) has muster forward the person's Dex ID token as every call's bearer (`auth.forwardToken`), validated against Dex (`auth.dex.issuerURL`, `auth.trustedAudiences`), and attach the person's token of the toolchain-manager's GitHub App, whose grant muster keeps (`auth.providerApps`, `github.grantApp`), in `X-Muster-Grant-<app>`, verified with GitHub. Without `auth.dex.issuerURL` the source tools are not served.
+
+An installation's sources are the ones its configuration names (`sources`, approved by being named there) and the ones people add, each a `ToolchainSource` (`toolchain-manager.giantswarm.io/v1alpha1`) in the manager's namespace. `add_source` needs the App installed on the repository, which is the grant to read it, open pull requests and read its CI, checked with the caller's own App token (a user-to-server token reaches a repository only where the App is installed and the person has access), and push access for the caller. Without the caller's grant in muster it answers `grant_required` naming the App, which muster answers with its sign-in link; without the installation, `install_required` with `github.appInstallURL`. A source someone adds is `Pending` until an installation owner (`owners.groups`, `owners.emails`) approves it once with `approve_source`; an owner's own source is approved by adding it. An approved source's contract-checked toolchains are offered. The source's CI builds and publishes with its own credentials to its own registry.
 
 ## The written Dockerfile
 

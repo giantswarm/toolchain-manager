@@ -36,3 +36,21 @@ Selector labels
 app.kubernetes.io/name: {{ include "name" . | quote }}
 app.kubernetes.io/instance: {{ .Release.Name | quote }}
 {{- end -}}
+
+{{/*
+"true" when every MCP call is authenticated by the person's Dex ID token and
+the source tools are served.
+*/}}
+{{- define "toolchain-manager.auth" -}}
+{{- if .Values.auth.dex.issuerURL }}true{{ else }}false{{ end -}}
+{{- end -}}
+
+{{/*
+The trusted audiences: auth.trustedAudiences and the ones muster requests,
+which every forwarded token carries.
+*/}}
+{{- define "toolchain-manager.audiences" -}}
+{{- $a := concat (.Values.auth.trustedAudiences | default list) (.Values.muster.mcpServer.requiredAudiences | default list) | uniq -}}
+{{- if not $a }}{{ fail "auth.trustedAudiences names no audience: the Dex client ids whose ID tokens muster forwards" }}{{ end -}}
+{{- join "," $a -}}
+{{- end -}}

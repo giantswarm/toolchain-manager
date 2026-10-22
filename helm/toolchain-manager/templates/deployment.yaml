@@ -1,0 +1,98 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "name" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "labels.common" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "labels.selector" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        {{- /* The server reads the configured sources at start only. */}}
+        checksum/sources: {{ include (print $.Template.BasePath "/sources-configmap.yaml") . | sha256sum }}
+      labels:
+        {{- include "labels.common" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "name" . }}
+      {{- /* The source tools keep ToolchainSources as this ServiceAccount (rbac.yaml). */}}
+      automountServiceAccountToken: {{ include "toolchain-manager.auth" . | eq "true" }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.registry.domain }}/{{ .Values.image.name }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - serve
+            - --listen=:8080
+            - --mcp-path={{ .Values.mcp.path }}
+            - --github-api={{ .Values.github.api }}
+            {{- if eq (include "toolchain-manager.auth" .) "true" }}
+            - --dex-issuer-url={{ .Values.auth.dex.issuerURL }}
+            {{- with .Values.auth.dex.discoveryURL }}
+            - --dex-discovery-url={{ . }}
+            {{- end }}
+            {{- if .Values.auth.dex.caSecret.name }}
+            - --dex-ca-file=/etc/toolchain-manager/dex-ca/{{ .Values.auth.dex.caSecret.key }}
+            {{- end }}
+            - --trusted-audiences={{ include "toolchain-manager.audiences" . }}
+            - --sources-file=/etc/toolchain-manager/sources/sources.yaml
+            {{- with .Values.owners.groups }}
+            - --owner-groups={{ join "," . }}
+            {{- end }}
+            {{- with .Values.owners.emails }}
+            - --owner-emails={{ join "," . }}
+            {{- end }}
+            - --grant-app={{ .Values.github.grantApp }}
+            {{- with .Values.github.appInstallURL }}
+            - --github-app-install-url={{ . }}
+            {{- end }}
+            {{- end }}
+          env:
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          {{- if eq (include "toolchain-manager.auth" .) "true" }}
+          volumeMounts:
+            - name: sources
+              mountPath: /etc/toolchain-manager/sources
+              readOnly: true
+            {{- if .Values.auth.dex.caSecret.name }}
+            - name: dex-ca
+              mountPath: /etc/toolchain-manager/dex-ca
+              readOnly: true
+            {{- end }}
+          {{- end }}
+      {{- if eq (include "toolchain-manager.auth" .) "true" }}
+      volumes:
+        - name: sources
+          configMap:
+            name: {{ include "name" . }}-sources
+        {{- with .Values.auth.dex.caSecret.name }}
+        - name: dex-ca
+          secret:
+            secretName: {{ . }}
+        {{- end }}
+      {{- end }}

@@ -10,7 +10,7 @@ appVersion: 0.0.1
 name: toolchain-manager
 
 # Please describe what the app provides in a sentence or two.
-description: Please add description
+description: MCP server that manages toolchains for coding agents, their sources, package search and the Dockerfile they are built from.
 
 # URL of the GitHub repository that is the source of this Chart.yaml file.
 home: https://github.com/giantswarm/toolchain-manager
@@ -21,7 +21,7 @@ home: https://github.com/giantswarm/toolchain-manager
 icon: https://s.giantswarm.io/app-icons/giantswarm/1/light.svg
 
 sources:
-- https://github.com/some-org/some-repo
+- https://github.com/giantswarm/toolchain-manager
 version: 0.0.0-dev
 annotations:
   # Adapt to 'giantswarm' if this application is not to be deployed by customers

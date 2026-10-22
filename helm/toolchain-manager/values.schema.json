@@ -3,6 +3,44 @@
     "type": "object",
     "additionalProperties": false,
     "properties": {
+        "auth": {
+            "type": "object",
+            "description": "How every MCP call is authenticated: muster forwards the person's Dex ID token as its bearer (the MCPServer's `auth.forwardToken`). With `auth.dex.issuerURL` set, every call needs a valid token and the source tools are served; empty serves the package and Dockerfile tools only, to anyone who reaches the Service.",
+            "additionalProperties": false,
+            "properties": {
+                "dex": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "caSecret": {
+                            "type": "object",
+                            "description": "Secret (name, key) in the release namespace holding the PEM CA of a Dex with a private certificate; empty name trusts the system roots.",
+                            "additionalProperties": false,
+                            "properties": {
+                                "key": {
+                                    "type": "string"
+                                },
+                                "name": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "discoveryURL": {
+                            "type": "string",
+                            "description": "Where the manager reaches Dex when the issuer's public name does not resolve in the cluster; empty is the issuer."
+                        },
+                        "issuerURL": {
+                            "type": "string",
+                            "description": "Dex issuer URL, as the tokens name it."
+                        }
+                    }
+                },
+                "trustedAudiences": {
+                    "type": "array",
+                    "description": "OAuth client ids whose Dex ID tokens are accepted: the platform client and the audiences muster requires."
+                }
+            }
+        },
         "baseDomain": {
             "type": "string"
         },
@@ -34,8 +72,36 @@
         "clusterID": {
             "type": "string"
         },
+        "crds": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "install": {
+                    "type": "boolean",
+                    "description": "Install the ToolchainSource CRD; kept on uninstall, so removing the chart never removes an added source."
+                }
+            }
+        },
         "gcpProject": {
             "type": "string"
+        },
+        "github": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "api": {
+                    "type": "string",
+                    "description": "GitHub API."
+                },
+                "appInstallURL": {
+                    "type": "string",
+                    "description": "Where a repository's owner installs the App, https://github.com/apps/<slug>/installations/new; add_source names it."
+                },
+                "grantApp": {
+                    "type": "string",
+                    "description": "Provider App muster keeps the person's grant of the toolchain-manager's GitHub App as: muster attaches the person's token in `X-Muster-Grant-<app>` (an `aggregator.providerApps` entry of muster)."
+                }
+            }
         },
         "global": {
             "type": [
@@ -50,10 +116,105 @@
             "additionalProperties": false,
             "properties": {
                 "name": {
+                    "type": "string",
+                    "description": "Image repository below `registry.domain`."
+                },
+                "pullPolicy": {
                     "type": "string"
                 },
                 "tag": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "Image tag; empty is the chart's appVersion."
+                }
+            }
+        },
+        "mcp": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "path": {
+                    "type": "string",
+                    "description": "Path of the MCP endpoint."
+                }
+            }
+        },
+        "muster": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "mcpServer": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "description": {
+                            "type": "string"
+                        },
+                        "autoStart": {
+                            "type": "boolean"
+                        },
+                        "displayName": {
+                            "type": "string",
+                            "description": "Name the Dev Portal shows for this server."
+                        },
+                        "enabled": {
+                            "type": "boolean",
+                            "description": "Register this server with muster: an `MCPServer` in the release namespace, its tools `x_<name>_<tool>`. Needs `auth.dex.issuerURL`."
+                        },
+                        "labels": {
+                            "type": "object",
+                            "description": "Labels added to (and overriding) the MCPServer's.",
+                            "additionalProperties": false
+                        },
+                        "name": {
+                            "type": "string",
+                            "description": "MCPServer name, the tools' prefix."
+                        },
+                        "requiredAudiences": {
+                            "type": "array",
+                            "description": "Audiences muster requests at login and forwards in the token."
+                        },
+                        "timeout": {
+                            "type": "integer",
+                            "description": "Tool call timeout in seconds; 0 keeps muster's default."
+                        }
+                    }
+                }
+            }
+        },
+        "owners": {
+            "type": "object",
+            "description": "The installation's owners, who approve a source a person adds once before its toolchains are offered: Dex groups and verified emails. Without any, an added source is never approved.",
+            "additionalProperties": false,
+            "properties": {
+                "emails": {
+                    "type": "array"
+                },
+                "groups": {
+                    "type": "array"
+                }
+            }
+        },
+        "podSecurityContext": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "runAsGroup": {
+                    "type": "integer"
+                },
+                "runAsNonRoot": {
+                    "type": "boolean"
+                },
+                "runAsUser": {
+                    "type": "integer"
+                },
+                "seccompProfile": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "type": {
+                            "type": "string"
+                        }
+                    }
                 }
             }
         },
@@ -66,6 +227,85 @@
             "properties": {
                 "domain": {
                     "type": "string"
+                }
+            }
+        },
+        "replicaCount": {
+            "type": "integer"
+        },
+        "resources": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "limits": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "memory": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "requests": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "cpu": {
+                            "type": "string"
+                        },
+                        "memory": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "securityContext": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "allowPrivilegeEscalation": {
+                    "type": "boolean"
+                },
+                "capabilities": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "drop": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "readOnlyRootFilesystem": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "service": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "port": {
+                    "type": "integer"
+                }
+            }
+        },
+        "sources": {
+            "type": "array",
+            "description": "The toolchain sources the installation's configuration names, approved by being named here: each a GitHub repository (owner/name), the registry prefix its toolchains publish under, and the Slack channel of the team that approves its updates.",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "registry": {
+                        "type": "string"
+                    },
+                    "repository": {
+                        "type": "string"
+                    }
                 }
             }
         },
