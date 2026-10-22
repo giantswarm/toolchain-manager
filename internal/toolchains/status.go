@@ -159,7 +159,8 @@ func (c *Catalog) build(ctx context.Context, token string, src sources.Source, n
 // beside the merge commit's jobs. A source may create the release before
 // its CI pushes the image (giantswarm/agent-toolchains' tag pipeline), so
 // published waits for the image; a registry that does not answer
-// anonymously is taken as published once every job passed.
+// anonymously, or not at all, is taken as published once every job
+// passed.
 func (c *Catalog) merged(ctx context.Context, token string, src sources.Source, b *Build) error {
 	tags, err := c.GitHub.TagsAt(ctx, token, src.Repository, b.Toolchain+"/v", b.Commit)
 	if err != nil && !errors.Is(err, github.ErrNotFound) {
@@ -188,11 +189,9 @@ func (c *Catalog) merged(ctx context.Context, token string, src sources.Source, 
 		}
 		image := src.Registry + "/" + b.Toolchain + ":" + strings.TrimPrefix(m[2], "v")
 		pushed, err := c.imageExists(ctx, image)
-		switch {
-		case errors.Is(err, registry.ErrUnknown):
+		if err != nil {
+			// Not answered (credentials, an address not public): the jobs tell.
 			pushed = jobs == StateUnreleased
-		case err != nil:
-			return fmt.Errorf("read %s: %w", image, err)
 		}
 		if pushed {
 			b.State, b.Version, b.Image, b.ReleaseURL = StatePublished, m[2], image, r.HTMLURL

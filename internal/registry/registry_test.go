@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"net/netip"
 	"strings"
 	"testing"
 )
@@ -46,5 +47,19 @@ func TestExistsFollowsTheAnonymousTokenFlow(t *testing.T) {
 	}
 	if _, err := c.Exists(context.Background(), "jq"); err == nil {
 		t.Error("an image without host and tag was asked")
+	}
+}
+
+func TestTheDefaultClientReachesPublicAddressesOnly(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusOK) }))
+	t.Cleanup(srv.Close)
+	c := &Client{Scheme: "http"}
+	if _, err := c.Exists(context.Background(), strings.TrimPrefix(srv.URL, "http://")+"/acme/jq:0.2.0"); err == nil || !strings.Contains(err.Error(), "not public") {
+		t.Errorf("a loopback registry = %v, want refused", err)
+	}
+	for addr, want := range map[string]bool{"20.50.2.1": true, "10.0.0.1": false, "169.254.169.254": false, "::1": false, "::ffff:127.0.0.1": false, "fd00::1": false} {
+		if got := public(netip.MustParseAddr(addr)); got != want {
+			t.Errorf("public(%s) = %v, want %v", addr, got, want)
+		}
 	}
 }

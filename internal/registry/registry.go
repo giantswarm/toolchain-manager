@@ -2,7 +2,8 @@
 // exists: the published image of a toolchain. A registry that answers
 // anonymous pulls (gsoci.azurecr.io) is read through its token flow; one
 // that needs credentials is ErrUnknown, as the manager holds none of a
-// source's.
+// source's. A source names its registry, so the client only reaches public
+// addresses over https and follows no redirect.
 package registry
 
 import (
@@ -10,9 +11,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
+	"net/netip"
 	"net/url"
 	"strings"
+	"syscall"
 	"time"
 )
 
@@ -42,11 +46,7 @@ func (c *Client) Exists(ctx context.Context, image string) (bool, error) {
 	if !ok || !okTag || repo == "" || tag == "" {
 		return false, fmt.Errorf("image %q: want host/repository:tag", image)
 	}
-	scheme := c.Scheme
-	if scheme == "" {
-		scheme = "https"
-	}
-	manifest := scheme + "://" + host + "/v2/" + repo + "/manifests/" + url.PathEscape(tag)
+	manifest := c.scheme() + "://" + host + "/v2/" + repo + "/manifests/" + url.PathEscape(tag)
 	resp, err := c.head(ctx, manifest, "")
 	if err != nil {
 		return false, err
@@ -71,6 +71,13 @@ func (c *Client) Exists(ctx context.Context, image string) (bool, error) {
 	return false, fmt.Errorf("HEAD %s: %s", manifest, resp.Status)
 }
 
+func (c *Client) scheme() string {
+	if c.Scheme != "" {
+		return c.Scheme
+	}
+	return "https"
+}
+
 func (c *Client) head(ctx context.Context, u, token string) (*http.Response, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodHead, u, nil)
 	if err != nil {
@@ -91,7 +98,7 @@ func (c *Client) head(ctx context.Context, u, token string) (*http.Response, err
 // token asks the realm of a Bearer challenge for an anonymous token.
 func (c *Client) token(ctx context.Context, challenge string) (string, error) {
 	params, ok := bearer(challenge)
-	if !ok || params["realm"] == "" {
+	if !ok || !strings.HasPrefix(params["realm"], c.scheme()+"://") {
 		return "", ErrUnknown
 	}
 	q := url.Values{}
@@ -163,5 +170,33 @@ func (c *Client) client() *http.Client {
 	if c.HTTP != nil {
 		return c.HTTP
 	}
-	return &http.Client{Timeout: 10 * time.Second}
+	return publicClient
+}
+
+// publicClient reaches public addresses only and follows no redirect.
+var publicClient = &http.Client{
+	Timeout: 10 * time.Second,
+	Transport: &http.Transport{
+		DialContext: (&net.Dialer{
+			Timeout: 5 * time.Second,
+			Control: func(_, address string, _ syscall.RawConn) error {
+				host, _, err := net.SplitHostPort(address)
+				if err != nil {
+					return err
+				}
+				if ip, err := netip.ParseAddr(host); err != nil || !public(ip) {
+					return fmt.Errorf("registry address %s is not public", host)
+				}
+				return nil
+			},
+		}).DialContext,
+		TLSHandshakeTimeout: 5 * time.Second,
+	},
+	CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse },
+}
+
+// public reports whether ip is a public unicast address.
+func public(ip netip.Addr) bool {
+	ip = ip.Unmap()
+	return ip.IsGlobalUnicast() && !ip.IsPrivate() && !ip.IsLoopback() && !ip.IsLinkLocalUnicast()
 }
