@@ -9,6 +9,7 @@ import (
 
 	"github.com/giantswarm/toolchain-manager/internal/github"
 	"github.com/giantswarm/toolchain-manager/internal/identity"
+	"github.com/giantswarm/toolchain-manager/internal/registry"
 	"github.com/giantswarm/toolchain-manager/internal/sources"
 )
 
@@ -25,7 +26,8 @@ const (
 	StateChecked = "checked"
 	// StateBuilding: merged, the release builds, checks and publishes.
 	StateBuilding = "building"
-	// StatePublished: the merge commit is released as <name>/vX.Y.Z.
+	// StatePublished: the merge commit is released as <name>/vX.Y.Z and its
+	// image is in the source's registry.
 	StatePublished = "published"
 	// StateFailed: a job failed; Log is its log.
 	StateFailed = "failed"
@@ -153,7 +155,11 @@ func (c *Catalog) build(ctx context.Context, token string, src sources.Source, n
 }
 
 // merged reads a merged pull request's release: the toolchain's tag at the
-// merge commit with its GitHub Release, else the merge commit's jobs.
+// merge commit, its GitHub Release and its image in the source's registry,
+// beside the merge commit's jobs. A source may create the release before
+// its CI pushes the image (giantswarm/agent-toolchains' tag pipeline), so
+// published waits for the image; a registry that does not answer
+// anonymously is taken as published once every job passed.
 func (c *Catalog) merged(ctx context.Context, token string, src sources.Source, b *Build) error {
 	tags, err := c.GitHub.TagsAt(ctx, token, src.Repository, b.Toolchain+"/v", b.Commit)
 	if err != nil && !errors.Is(err, github.ErrNotFound) {
@@ -162,28 +168,46 @@ func (c *Catalog) merged(ctx context.Context, token string, src sources.Source, 
 	if err := c.jobs(ctx, token, b); err != nil {
 		return err
 	}
+	jobs := b.fromJobs(StateBuilding, StateUnreleased)
+	if jobs == StateFailed {
+		b.State = jobs
+		return nil
+	}
 	for _, tag := range tags {
 		m := releaseTag.FindStringSubmatch(tag)
 		if m == nil || m[1] != b.Toolchain {
 			continue
 		}
+		b.State = StateBuilding
 		r, err := c.GitHub.ReleaseByTag(ctx, token, src.Repository, tag)
 		if errors.Is(err, github.ErrNotFound) || (err == nil && r.Draft) {
-			// Tagged, its release not yet created.
-			b.State = StateBuilding
 			return nil
 		}
 		if err != nil {
 			return err
 		}
-		b.State = StatePublished
-		b.Version = m[2]
-		b.Image = src.Registry + "/" + b.Toolchain + ":" + strings.TrimPrefix(m[2], "v")
-		b.ReleaseURL = r.HTMLURL
+		image := src.Registry + "/" + b.Toolchain + ":" + strings.TrimPrefix(m[2], "v")
+		pushed, err := c.imageExists(ctx, image)
+		switch {
+		case errors.Is(err, registry.ErrUnknown):
+			pushed = jobs == StateUnreleased
+		case err != nil:
+			return fmt.Errorf("read %s: %w", image, err)
+		}
+		if pushed {
+			b.State, b.Version, b.Image, b.ReleaseURL = StatePublished, m[2], image, r.HTMLURL
+		}
 		return nil
 	}
-	b.State = b.fromJobs(StateBuilding, StateUnreleased)
+	b.State = jobs
 	return nil
+}
+
+func (c *Catalog) imageExists(ctx context.Context, image string) (bool, error) {
+	if c.Registry == nil {
+		return false, registry.ErrUnknown
+	}
+	return c.Registry.Exists(ctx, image)
 }
 
 func (c *Catalog) jobs(ctx context.Context, token string, b *Build) error {

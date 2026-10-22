@@ -1,6 +1,7 @@
 package toolchains
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -13,6 +14,7 @@ import (
 	"time"
 
 	"github.com/giantswarm/toolchain-manager/internal/github"
+	"github.com/giantswarm/toolchain-manager/internal/registry"
 	"github.com/giantswarm/toolchain-manager/internal/sources"
 )
 
@@ -280,18 +282,36 @@ func TestBuildStatusFollowsThePullRequestToItsRelease(t *testing.T) {
 	f.tags = `[{"ref":"refs/tags/jq/v0.1.0","object":{"type":"commit","sha":"older"}},{"ref":"refs/tags/jq/v0.2.0","object":{"type":"commit","sha":"merge"}}]`
 	step(StateBuilding) // tagged, no release yet
 	f.releases["jq/v0.2.0"] = `{"tag_name":"jq/v0.2.0","html_url":"https://github.com/acme/tools/releases/tag/jq/v0.2.0"}`
+	images := images{}
+	c.Registry = images
+	step(StateBuilding) // released, the image not pushed yet
+	images["registry.acme.io/acme-tools/jq:0.2.0"] = nil
 	b = step(StatePublished)
 	if b.Version != "v0.2.0" || b.Image != "registry.acme.io/acme-tools/jq:0.2.0" || b.ReleaseURL == "" {
 		t.Errorf("published = %+v", b)
 	}
 
-	f.tags, f.jobs["merge"] = `[]`, `[{"name":"Release","status":"completed","conclusion":"success"}]`
+	// A registry that wants credentials: published once every job passed.
+	images["registry.acme.io/acme-tools/jq:0.2.0"] = registry.ErrUnknown
+	step(StateBuilding)
+	f.jobs["merge"] = `[{"name":"Release","status":"completed","conclusion":"success"}]`
+	step(StatePublished)
+
+	f.tags = `[]`
 	step(StateUnreleased)
 	f.jobs["merge"] = `[{"name":"Release","status":"completed","conclusion":"failure","html_url":"https://github.com/acme/tools/actions/runs/3/job/4"}]`
 	step(StateFailed)
 
 	pr["merged_at"] = nil
 	step(StateClosed)
+}
+
+// images are the image tags that exist, or the error asking for one gives.
+type images map[string]error
+
+func (i images) Exists(_ context.Context, image string) (bool, error) {
+	err, ok := i[image]
+	return ok && err == nil, err
 }
 
 func TestBuildStatusWaitsForTheStateToMove(t *testing.T) {
