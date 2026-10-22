@@ -245,7 +245,8 @@ func (m *Manager) Add(ctx context.Context, in AddInput) (AddResult, error) {
 	src := &v1alpha1.ToolchainSource{
 		ObjectMeta: metav1.ObjectMeta{Name: Name(r.FullName), Namespace: m.Namespace},
 		Spec: v1alpha1.ToolchainSourceSpec{
-			Repository: r.FullName, URL: r.HTMLURL, Registry: in.Registry, SlackChannel: channel, AddedBy: id.String(),
+			Repository: r.FullName, URL: r.HTMLURL, Registry: in.Registry, SlackChannel: channel,
+			AddedBy: id.String(), AddedBySubject: id.Subject,
 		},
 	}
 	if err := m.Client.Create(ctx, src); err != nil {
@@ -301,7 +302,7 @@ func (m *Manager) Remove(ctx context.Context, ref string) (Source, error) {
 	if err != nil {
 		return Source{}, err
 	}
-	if !strings.EqualFold(src.Spec.AddedBy, id.String()) && !m.Owners.Owns(id) {
+	if (src.Spec.AddedBySubject == "" || src.Spec.AddedBySubject != id.Subject) && !m.Owners.Owns(id) {
 		return Source{}, fmt.Errorf("%s was added by %s: they or an installation owner remove it", src.Spec.Repository, src.Spec.AddedBy)
 	}
 	if err := m.Client.Delete(ctx, src, client.Preconditions{UID: &src.UID}); err != nil && !apierrors.IsNotFound(err) {
@@ -362,7 +363,7 @@ func (m *Manager) now() time.Time {
 
 func caller(ctx context.Context) (*identity.Identity, error) {
 	id, ok := identity.FromContext(ctx)
-	if !ok || id.String() == "" {
+	if !ok || id.Subject == "" {
 		return nil, errors.New("no caller: the source tools act for the person muster forwards")
 	}
 	return id, nil

@@ -90,7 +90,7 @@ func TestSourceToolsAnswerAsTheCaller(t *testing.T) {
 		t.Fatalf("with the grant: %+v", res)
 	}
 
-	admin := identity.ContextWith(context.Background(), &identity.Identity{Subject: "a", Email: "admin@lab.local", Groups: []string{"platform-admins"}})
+	admin := identity.ContextWith(context.Background(), &identity.Identity{Subject: "a", Email: "admin@lab.local", EmailVerified: true, Groups: []string{"platform-admins"}})
 	var approved sources.Source
 	callAs(t, c, admin, ToolApproveSource, map[string]any{"source": "acme/tools"}, &approved)
 	if !approved.Offered || approved.ApprovedBy != "admin@lab.local" {

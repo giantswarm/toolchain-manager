@@ -56,7 +56,14 @@ spec:
               named.
             properties:
               addedBy:
-                description: AddedBy is the person who added the source.
+                description: |-
+                  AddedBy is the person who added the source: their verified email,
+                  else their subject.
+                type: string
+              addedBySubject:
+                description: |-
+                  AddedBySubject is the identity provider's subject of the person who
+                  added the source, which their removal rights rest on.
                 type: string
               registry:
                 description: |-
@@ -80,6 +87,7 @@ spec:
                 type: string
             required:
             - addedBy
+            - addedBySubject
             - registry
             - repository
             - slackChannel

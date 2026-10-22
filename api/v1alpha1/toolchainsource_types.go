@@ -48,8 +48,12 @@ type ToolchainSourceSpec struct {
 	// SlackChannel is the owning team's channel that approves the source's
 	// updates.
 	SlackChannel string `json:"slackChannel"`
-	// AddedBy is the person who added the source.
+	// AddedBy is the person who added the source: their verified email,
+	// else their subject.
 	AddedBy string `json:"addedBy"`
+	// AddedBySubject is the identity provider's subject of the person who
+	// added the source, which their removal rights rest on.
+	AddedBySubject string `json:"addedBySubject"`
 }
 
 // ToolchainSourceStatus is the installation owner's review.

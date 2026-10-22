@@ -19,12 +19,13 @@ type Identity struct {
 	Groups []string
 }
 
-// String is the caller as recorded and reported: the email, else the subject.
+// String is the caller as recorded and reported: the verified email, else
+// the subject. An email the IdP does not vouch for names nobody.
 func (id *Identity) String() string {
 	if id == nil {
 		return ""
 	}
-	if id.Email != "" {
+	if id.Email != "" && id.EmailVerified {
 		return id.Email
 	}
 	return id.Subject

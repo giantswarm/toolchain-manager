@@ -192,6 +192,11 @@ func TestRemove(t *testing.T) {
 	if _, err := m.Remove(as(bob, ""), "acme/tools"); err == nil || !strings.Contains(err.Error(), "added by alice@example.com") {
 		t.Errorf("bob removed alice's source: %v", err)
 	}
+	// The same email without the IdP's word for it is not alice.
+	mallory := &identity.Identity{Subject: "m", Email: "alice@example.com"}
+	if _, err := m.Remove(as(mallory, ""), "acme/tools"); err == nil {
+		t.Errorf("an unverified email removed alice's source")
+	}
 	if _, err := m.Remove(as(owner, ""), "giantswarm-agent-toolchains"); err == nil || !strings.Contains(err.Error(), "configuration") {
 		t.Errorf("a configured source removed: %v", err)
 	}
