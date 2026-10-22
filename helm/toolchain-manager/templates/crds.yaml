@@ -1,0 +1,14 @@
+{{- if .Values.crds.install }}
+{{- /*
+The API's CRDs, generated from api/ into files/crds (`make generate`).
+Rendered as templates rather than from crds/ so an upgrade updates them; kept
+on uninstall, so removing the chart never removes an added source.
+*/}}
+{{- range $path, $_ := .Files.Glob "files/crds/*.yaml" }}
+{{- $crd := $.Files.Get $path | fromYaml }}
+{{- $_ := set $crd.metadata "labels" (include "labels.common" $ | fromYaml) }}
+{{- $_ := set $crd.metadata "annotations" (merge (dict "helm.sh/resource-policy" "keep") ($crd.metadata.annotations | default dict)) }}
+---
+{{ toYaml $crd }}
+{{- end }}
+{{- end }}

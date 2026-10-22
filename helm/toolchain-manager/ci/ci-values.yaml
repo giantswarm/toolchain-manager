@@ -2,4 +2,14 @@
 # app-build-suite passes this file to `helm template` (see `helm-template-extra-values` in .abs/main.yaml),
 # so a value the chart marks `required` and cannot default (an external endpoint, say) is filled here.
 # These values are only used by CI; they are never installed.
-{}
+#
+# The authenticated shape with its muster registration, which the defaults do not render.
+auth:
+  dex:
+    issuerURL: https://dex.example.com
+  trustedAudiences: [muster]
+owners:
+  groups: [admins]
+muster:
+  mcpServer:
+    enabled: true

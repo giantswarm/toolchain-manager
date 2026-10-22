@@ -1,0 +1,14 @@
+{{- /*
+The sources the installation's configuration names, approved by being named
+here; the ones people add are ToolchainSources.
+*/}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "name" . }}-sources
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "labels.common" . | nindent 4 }}
+data:
+  sources.yaml: |
+    {{- dict "sources" (.Values.sources | default list) | toYaml | nindent 4 }}
