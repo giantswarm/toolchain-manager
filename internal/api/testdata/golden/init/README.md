@@ -11,7 +11,7 @@ beside the unchanged image of the agent's Harness, with its `bin/` on `PATH`.
 
 | Path | What it is |
 |---|---|
-| `toolchains/<name>/Dockerfile` | A toolchain: image `registry.example.com/example/toolchains/<name>`, released as `<name>/vX.Y.Z` |
+| `toolchains/<name>/Dockerfile` | A toolchain: image `registry.example.com/example/toolchains/<name>:X.Y.Z`, released as `<name>/vX.Y.Z` |
 | `.github/workflows/toolchain-contract.yaml` | The toolchain contract check of every toolchain, required on every pull request |
 | `.github/workflows/toolchain-release.yaml` | On a merge, each changed toolchain is checked, published under its next version and `latest`, and tagged |
 | `renovate.json5` | Renovate keeps the workflows' pinned actions current; the toolchains' pins are the toolchain-manager's |

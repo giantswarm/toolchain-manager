@@ -28,6 +28,9 @@ func NewMCPServer(svc *Service, version string) *mcpserver.MCPServer {
 	if svc.ToolchainSources != nil {
 		instr += sourcesInstructions
 	}
+	if svc.Toolchains != nil {
+		instr += toolchainsInstructions
+	}
 	s := mcpserver.NewMCPServer("toolchain-manager", version,
 		mcpserver.WithToolCapabilities(false),
 		mcpserver.WithInstructions(instr),
@@ -95,6 +98,9 @@ func NewMCPServer(svc *Service, version string) *mcpserver.MCPServer {
 
 	if svc.ToolchainSources != nil {
 		addSourceTools(s, svc.ToolchainSources)
+	}
+	if svc.Toolchains != nil {
+		addToolchainTools(s, svc.Toolchains)
 	}
 	return s
 }

@@ -165,6 +165,22 @@ func (m *Manager) list(ctx context.Context) ([]Source, error) {
 	return append(out, added...), nil
 }
 
+// Offered returns the sources whose toolchains are offered: the configured
+// ones and the approved added ones, in List's order.
+func (m *Manager) Offered(ctx context.Context) ([]Source, error) {
+	list, err := m.List(ctx)
+	if err != nil {
+		return nil, err
+	}
+	out := list[:0]
+	for _, s := range list {
+		if s.Offered {
+			out = append(out, s)
+		}
+	}
+	return out, nil
+}
+
 // AddInput is add_source's input.
 type AddInput struct {
 	// Repository is owner/name or the repository's GitHub URL.
