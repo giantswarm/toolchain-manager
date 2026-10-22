@@ -1,7 +1,7 @@
 // Package api is the toolchain-manager's MCP seam: the tools that search a
 // package source, write a toolchain's Dockerfile from picked packages and
-// binaries, render a new toolchain source, and keep the installation's
-// toolchain sources.
+// binaries, render a new toolchain source, keep the installation's
+// toolchain sources, and list and describe their published toolchains.
 package api
 
 import (
@@ -15,6 +15,7 @@ import (
 	"github.com/giantswarm/toolchain-manager/internal/source"
 	"github.com/giantswarm/toolchain-manager/internal/sources"
 	"github.com/giantswarm/toolchain-manager/internal/toolchain"
+	"github.com/giantswarm/toolchain-manager/internal/toolchains"
 )
 
 // BinaryResolver pins a binary by version and checksum.
@@ -32,6 +33,9 @@ type Service struct {
 	// ToolchainSources keeps the installation's toolchain sources; nil
 	// serves no source tools.
 	ToolchainSources *sources.Manager
+	// Toolchains reads the offered sources' published toolchains; nil
+	// serves no toolchain tools.
+	Toolchains *toolchains.Catalog
 }
 
 // SearchResult is search_packages' answer.

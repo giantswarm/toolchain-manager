@@ -16,12 +16,16 @@ A **toolchain** is a named set of tools (`go`, `node`) published as its own OCI 
 | `add_source` | Adds a GitHub repository the caller maintains, granted by the toolchain-manager's GitHub App, with the Slack channel that approves its updates |
 | `approve_source` | Approves an added source, as the installation's owner, once |
 | `remove_source` | Removes an added source, as the person who added it or an owner |
+| `list_toolchains` | Lists the toolchains the offered sources have published, each with its versions (newest first) and image |
+| `describe_toolchain` | Describes a published toolchain at a version (the newest by default): its image, Harnesses, tools with their version commands, pinned packages and binaries, egress, and whether the manager wrote its Dockerfile |
 
 The package and Dockerfile tools return files and write to no repository.
 
+A published toolchain is a GitHub Release `<name>/vX.Y.Z` of an offered source, which its release workflow creates only for a toolchain that keeps the contract, its image `<registry>/<name>:X.Y.Z`. `list_toolchains` and `describe_toolchain` read the releases and the released Dockerfile (`toolchains/<name>/Dockerfile` at the tag), whose `io.giantswarm.toolchain.*` labels are the image's, with the person's App token: a person sees the toolchains of the sources the App's installation grants them, and a source it does not reach is listed as unreachable.
+
 ## Sources and who calls
 
-The tools are called as the person through muster: the chart's `MCPServer` (`muster.mcpServer.enabled`) has muster forward the person's Dex ID token as every call's bearer (`auth.forwardToken`), validated against Dex (`auth.dex.issuerURL`, `auth.trustedAudiences`), and attach the person's token of the toolchain-manager's GitHub App, whose grant muster keeps (`auth.providerApps`, `github.grantApp`), in `X-Muster-Grant-<app>`, verified with GitHub. Without `auth.dex.issuerURL` the source tools are not served.
+The tools are called as the person through muster: the chart's `MCPServer` (`muster.mcpServer.enabled`) has muster forward the person's Dex ID token as every call's bearer (`auth.forwardToken`), validated against Dex (`auth.dex.issuerURL`, `auth.trustedAudiences`), and attach the person's token of the toolchain-manager's GitHub App, whose grant muster keeps (`auth.providerApps`, `github.grantApp`), in `X-Muster-Grant-<app>`, verified with GitHub. Without `auth.dex.issuerURL` the source and toolchain tools are not served.
 
 An installation's sources are the ones its configuration names (`sources`, approved by being named there) and the ones people add, each a `ToolchainSource` (`toolchain-manager.giantswarm.io/v1alpha1`) in the manager's namespace. `add_source` needs the App installed on the repository, which is the grant to read it, open pull requests and read its CI, checked with the caller's own App token (a user-to-server token reaches a repository only where the App is installed and the person has access), and push access for the caller. Without the caller's grant in muster it answers `grant_required` naming the App, which muster answers with its sign-in link; without the installation, `install_required` with `github.appInstallURL`. A source someone adds is `Pending` until an installation owner (`owners.groups`, `owners.emails`) approves it once with `approve_source`; an owner's own source is approved by adding it. An approved source's contract-checked toolchains are offered. The source's CI builds and publishes with its own credentials to its own registry.
 

@@ -18,12 +18,17 @@ import (
 	"github.com/giantswarm/toolchain-manager/internal/packages"
 	"github.com/giantswarm/toolchain-manager/internal/packages/alpine"
 	"github.com/giantswarm/toolchain-manager/internal/sources"
+	"github.com/giantswarm/toolchain-manager/internal/toolchains"
 )
 
 func TestSourceToolsAnswerAsTheCaller(t *testing.T) {
 	gh := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Header.Get("Authorization") == "Bearer grant" && r.URL.Path == "/repos/acme/tools" {
 			_, _ = w.Write([]byte(`{"full_name":"acme/tools","html_url":"https://github.com/acme/tools","permissions":{"push":true}}`))
+			return
+		}
+		if r.Header.Get("Authorization") == "Bearer grant" && r.URL.Path == "/repos/acme/tools/releases" {
+			_, _ = w.Write([]byte(`[{"tag_name":"jq/v0.2.0"},{"tag_name":"jq/v0.1.0"}]`))
 			return
 		}
 		http.NotFound(w, r)
@@ -41,6 +46,7 @@ func TestSourceToolsAnswerAsTheCaller(t *testing.T) {
 		GitHub:    &github.Client{API: gh.URL, HTTP: gh.Client()},
 		GrantApp:  "github",
 	}}
+	svc.Toolchains = &toolchains.Catalog{Sources: svc.ToolchainSources, GitHub: svc.ToolchainSources.GitHub}
 	if svc.Sources, err = packages.NewRegistry(alpine.New(alpine.Config{Fetcher: alpine.DirFetcher("../packages/alpine/testdata/apkindex")})); err != nil {
 		t.Fatal(err)
 	}
@@ -67,7 +73,7 @@ func TestSourceToolsAnswerAsTheCaller(t *testing.T) {
 	for _, tool := range tools.Tools {
 		names[tool.Name] = tool
 	}
-	for _, want := range []string{ToolListSources, ToolAddSource, ToolApproveSource, ToolRemoveSource} {
+	for _, want := range []string{ToolListSources, ToolAddSource, ToolApproveSource, ToolRemoveSource, ToolListToolchains, ToolDescribeToolchain} {
 		if _, ok := names[want]; !ok {
 			t.Errorf("%s not served", want)
 		}
@@ -101,6 +107,12 @@ func TestSourceToolsAnswerAsTheCaller(t *testing.T) {
 	callAs(t, c, dev, ToolListSources, nil, &list)
 	if len(list.Sources) != 1 || !list.Sources[0].Offered {
 		t.Errorf("list: %+v", list)
+	}
+
+	var offered toolchains.ListResult
+	callAs(t, c, identity.ContextWithGrant(dev, "grant"), ToolListToolchains, nil, &offered)
+	if len(offered.Toolchains) != 1 || offered.Toolchains[0].Name != "jq" || offered.Toolchains[0].Image != "registry.acme.io/toolchains/jq:0.2.0" {
+		t.Errorf("list_toolchains: %+v", offered)
 	}
 
 	var removed sources.Source

@@ -27,6 +27,7 @@ import (
 	"github.com/giantswarm/toolchain-manager/internal/server"
 	"github.com/giantswarm/toolchain-manager/internal/sources"
 	"github.com/giantswarm/toolchain-manager/internal/toolchain"
+	"github.com/giantswarm/toolchain-manager/internal/toolchains"
 )
 
 type serveOptions struct {
@@ -99,6 +100,7 @@ func serve(ctx context.Context, o serveOptions) error {
 		if svc.ToolchainSources, err = o.sources(gh); err != nil {
 			return err
 		}
+		svc.Toolchains = &toolchains.Catalog{Sources: svc.ToolchainSources, GitHub: gh}
 		if guard, err = server.NewGuard(ctx, server.AuthConfig{
 			Issuer: o.dexIssuer, JWKSURL: o.dexJWKSURL, CAFile: o.dexCAFile, Audiences: o.trustedAudiences, GrantApp: o.grantApp, Pinned: o.grantPinned, GitHub: gh,
 		}, slog.Default()); err != nil {
@@ -117,7 +119,7 @@ func serve(ctx context.Context, o serveOptions) error {
 
 	errc := make(chan error, 1)
 	go func() { errc <- srv.ListenAndServe() }()
-	slog.Info("serving", "listen", o.listen, "mcp", o.mcpPath, "version", version, "sources", svc.ToolchainSources != nil)
+	slog.Info("serving", "listen", o.listen, "mcp", o.mcpPath, "version", version, "sources", svc.ToolchainSources != nil, "toolchains", svc.Toolchains != nil)
 	select {
 	case err := <-errc:
 		return err

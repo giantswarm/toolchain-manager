@@ -2,7 +2,7 @@
 # Release per toolchain. On every push to main, each toolchain whose
 # directory changed since its latest <name>/v* tag is checked with the
 # toolchain contract, published as a multi-arch image to
-# registry.example.com/example/toolchains/<name> under its next version and `latest`, then
+# registry.example.com/example/toolchains/<name> under its next version X.Y.Z and `latest`, then
 # tagged <name>/vX.Y.Z with a GitHub Release. The merged pull request's
 # squash subject sets the bump: a breaking change (`type!:` or a
 # `BREAKING CHANGE` footer) the major, a `feat` the minor, anything else the
@@ -97,7 +97,7 @@ jobs:
             docker build -t "toolchain-contract/${name}:check" "$dir"
             .toolchain-contract/scripts/toolchain-contract.sh "toolchain-contract/${name}:check" .toolchain-contract/harnesses
             docker buildx build --platform linux/amd64,linux/arm64 --push \
-              -t "${REGISTRY}/${name}:${version}" -t "${REGISTRY}/${name}:latest" "$dir"
+              -t "${REGISTRY}/${name}:${version#v}" -t "${REGISTRY}/${name}:latest" "$dir"
             git tag "${name}/${version}"
             git push origin "refs/tags/${name}/${version}"
             notes=(--generate-notes)
