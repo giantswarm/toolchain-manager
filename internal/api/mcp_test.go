@@ -235,6 +235,26 @@ func TestAddPackagesRefuses(t *testing.T) {
 	}
 }
 
+// A Dockerfile that lost or gained trailing newlines, or took CRLF line
+// endings, on its way back is still the manager's.
+func TestAddPackagesTakesBackAWhitespaceChangedDockerfile(t *testing.T) {
+	c := newTestClient(t)
+	var res ToolchainResult
+	if e := call(t, c, ToolAddPackages, map[string]any{"name": "helm", "packages": []string{"helm"}}, &res); e != "" {
+		t.Fatal(e)
+	}
+	for name, dockerfile := range map[string]string{
+		"without its last newline": strings.TrimRight(res.Dockerfile, "\n"),
+		"with another newline":     res.Dockerfile + "\n",
+		"with CRLF line endings":   strings.ReplaceAll(res.Dockerfile, "\n", "\r\n"),
+	} {
+		var again ToolchainResult
+		if e := call(t, c, ToolAddPackages, map[string]any{"dockerfile": dockerfile, "packages": []string{"jq"}}, &again); e != "" {
+			t.Errorf("%s: %s", name, e)
+		}
+	}
+}
+
 // fakeSource is a second package source, plugged in behind the interface.
 type fakeSource struct{}
 

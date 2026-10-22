@@ -4,7 +4,7 @@
 # the rest of the file: a hand edit makes it a hand-written toolchain, which
 # the manager leaves alone.
 # toolchain-manager: {"name":"jq","source":"alpine","branch":"v3.24","base":"docker.io/library/alpine:3.24.3@sha256:b3413572228e34bd1c9245f5565e6cd127005655e8a7899aef33d8e83255c9e6","harnesses":["kagent","claude","codex","omp"],"packages":[{"name":"jq","version":"1.8.2-r0"}],"tools":[{"name":"jq","version":"jq --version"}]}
-# toolchain-manager sha256: 0a6b2d282767360a6e4de78c2013869eec636b15c264de317e1d0bfd8aeab362
+# toolchain-manager sha256: ca4eb21822c93d5a911db72a4e3fc9d62a48ab0149bcdbaaaca858c16ed87697
 
 # The build stage installs everything at the mount directory /opt/kagent/tools/jq,
 # since shebangs and library paths embed it, and writes a wrapper per tool
