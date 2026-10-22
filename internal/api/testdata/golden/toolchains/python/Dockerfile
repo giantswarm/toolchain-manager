@@ -4,7 +4,7 @@
 # the rest of the file: a hand edit makes it a hand-written toolchain, which
 # the manager leaves alone.
 # toolchain-manager: {"name":"python","source":"alpine","branch":"v3.22","base":"docker.io/library/alpine:3.22.7@sha256:e9f2de928efcc1b53d0948e684b4f490315f280de6044844ec0ff26c0b44d3cf","harnesses":["kagent","claude","codex","omp"],"packages":[{"name":"python3","version":"3.12.15-r0"},{"name":"py3-pytest","version":"8.3.5-r0"}],"tools":[{"name":"python3","version":"python3 --version","env":{"PYTHONHOME":"{prefix}/usr"}},{"name":"pytest","version":"pytest --version","env":{"PYTHONHOME":"{prefix}/usr"}}]}
-# toolchain-manager sha256: 18a7090f8b03669eda7652e46fb1a037fe10db2c69d8d2a655cad7dff4b9438d
+# toolchain-manager sha256: dae49f289ee0342cdd1db09619a13878cb136cc261d4ec1142c6a771c40fc2d8
 
 # The build stage installs everything at the mount directory /opt/kagent/tools/python,
 # since shebangs and library paths embed it, and writes a wrapper per tool

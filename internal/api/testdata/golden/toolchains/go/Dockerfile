@@ -4,7 +4,7 @@
 # the rest of the file: a hand edit makes it a hand-written toolchain, which
 # the manager leaves alone.
 # toolchain-manager: {"name":"go","source":"alpine","branch":"v3.24","base":"docker.io/library/alpine:3.24.3@sha256:b3413572228e34bd1c9245f5565e6cd127005655e8a7899aef33d8e83255c9e6","harnesses":["kagent","claude","codex","omp"],"packages":[{"name":"go","version":"1.26.9-r0"}],"binaries":[{"name":"golangci-lint","version":"v2.15.0","from":"golangci/golangci-lint","assets":[{"arch":"amd64","url":"https://github.com/golangci/golangci-lint/releases/download/v2.15.0/golangci-lint-2.15.0-linux-amd64.tar.gz","sha256":"9b7fe6a6bf6334b98decf8d86b11415ea7889afdabdd1959fdce23af2a9ebcea"},{"arch":"arm64","url":"https://github.com/golangci/golangci-lint/releases/download/v2.15.0/golangci-lint-2.15.0-linux-arm64.tar.gz","sha256":"b4d8f17068b35ee6060cc2f69a16fb48740d706fbba81661c318649c114a6998"}]}],"tools":[{"name":"go","version":"go version","env":{"GOROOT":"{prefix}/usr/lib/go"}},{"name":"golangci-lint","path":"usr/local/bin/golangci-lint","version":"golangci-lint --version"}]}
-# toolchain-manager sha256: 547e68a2be792b4b015d62ae3368e8bcdd3667520f1d26835415d8c8d42e7d5b
+# toolchain-manager sha256: 66637817aa7d1ade06a7a20924303264f18dc2fe2a1758c54c288892b39aa232
 
 # The build stage installs everything at the mount directory /opt/kagent/tools/go,
 # since shebangs and library paths embed it, and writes a wrapper per tool

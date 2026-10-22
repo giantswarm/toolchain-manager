@@ -4,7 +4,7 @@
 # the rest of the file: a hand edit makes it a hand-written toolchain, which
 # the manager leaves alone.
 # toolchain-manager: {"name":"helm","source":"alpine","branch":"v3.24","base":"docker.io/library/alpine:3.24.3@sha256:b3413572228e34bd1c9245f5565e6cd127005655e8a7899aef33d8e83255c9e6","harnesses":["kagent","claude","codex","omp"],"packages":[{"name":"helm","version":"3.19.0-r9"}],"tools":[{"name":"helm","version":"helm version --short"}]}
-# toolchain-manager sha256: 5cd2ba9129a29fe144a5d748e91ea07bd7012269572082f2b5d9bb5fce99cc6a
+# toolchain-manager sha256: ba3589976ea5a917469c7b94405bae7168a5d90b645e4f7e7df58d4f2302f0b1
 
 # The build stage installs everything at the mount directory /opt/kagent/tools/helm,
 # since shebangs and library paths embed it, and writes a wrapper per tool
