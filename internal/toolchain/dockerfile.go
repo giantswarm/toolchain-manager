@@ -16,8 +16,10 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
+	"unicode"
 
 	"github.com/giantswarm/toolchain-manager/internal/binaries"
 	"github.com/giantswarm/toolchain-manager/internal/packages"
@@ -68,14 +70,16 @@ var (
 	//go:embed scripts/toolchain-fetch
 	fetchScript string
 
-	namePattern    = regexp.MustCompile(`^[a-z0-9][a-z0-9-]*$`)
-	toolPattern    = regexp.MustCompile(`^[a-z0-9][a-z0-9._+-]*$`)
-	envPattern     = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
-	pathPattern    = regexp.MustCompile(`^[A-Za-z0-9._+/-]+$`)
-	shaPattern     = regexp.MustCompile(`^[0-9a-f]{64}$`)
-	pinPattern     = regexp.MustCompile(`^[A-Za-z0-9._+-]+$`)
-	urlPattern     = regexp.MustCompile(`^https://[^\s'"\\]+$`)
-	harnessPattern = namePattern
+	namePattern       = regexp.MustCompile(`^[a-z0-9][a-z0-9-]*$`)
+	toolPattern       = regexp.MustCompile(`^[a-z0-9][a-z0-9._+-]*$`)
+	envPattern        = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
+	pathPattern       = regexp.MustCompile(`^[A-Za-z0-9._+/-]+$`)
+	shaPattern        = regexp.MustCompile(`^[0-9a-f]{64}$`)
+	pinPattern        = regexp.MustCompile(`^[A-Za-z0-9._+-]+$`)
+	urlPattern        = regexp.MustCompile(`^https://[^\s'"\\]+$`)
+	repositoryPattern = regexp.MustCompile(`^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$`)
+	basePattern       = regexp.MustCompile(`^[a-z0-9][a-z0-9._/:-]*@sha256:[0-9a-f]{64}$`)
+	harnessPattern    = namePattern
 )
 
 // Prefix is the toolchain's mount directory, its build prefix.
@@ -91,6 +95,12 @@ func (w Writer) Prefix(name string) string {
 func (s Spec) Validate() error {
 	if !namePattern.MatchString(s.Name) {
 		return fmt.Errorf("toolchain name %q: want a lower-case name ([a-z0-9-])", s.Name)
+	}
+	if !namePattern.MatchString(s.Source) || !pinPattern.MatchString(s.Branch) {
+		return fmt.Errorf("toolchain %s: source %q, branch %q", s.Name, s.Source, s.Branch)
+	}
+	if s.Base != "" && !basePattern.MatchString(s.Base) {
+		return fmt.Errorf("toolchain %s: base %q, want a digest-pinned image reference", s.Name, s.Base)
 	}
 	if len(s.Harnesses) == 0 {
 		return fmt.Errorf("toolchain %s declares no Harness", s.Name)
@@ -124,10 +134,16 @@ func (s Spec) Validate() error {
 		if b.Path != "" && !pathPattern.MatchString(b.Path) {
 			return fmt.Errorf("toolchain %s: binary %s: path %q", s.Name, b.Name, b.Path)
 		}
+		if !repositoryPattern.MatchString(b.From) && !urlPattern.MatchString(b.From) {
+			return fmt.Errorf("toolchain %s: binary %s comes from %q, want owner/name or an https URL", s.Name, b.Name, b.From)
+		}
 		if len(b.Assets) == 0 {
 			return fmt.Errorf("toolchain %s: binary %s has no asset", s.Name, b.Name)
 		}
 		for _, a := range b.Assets {
+			if !slices.Contains(binaries.Arches, a.Arch) {
+				return fmt.Errorf("toolchain %s: binary %s: architecture %q", s.Name, b.Name, a.Arch)
+			}
 			if !urlPattern.MatchString(a.URL) || !shaPattern.MatchString(a.SHA256) {
 				return fmt.Errorf("toolchain %s: binary %s %s: want an https URL and a SHA-256 checksum", s.Name, b.Name, a.Arch)
 			}
@@ -146,6 +162,9 @@ func (s Spec) Validate() error {
 		seen["t:"+t.Name] = true
 		if strings.TrimSpace(t.Version) == "" {
 			return fmt.Errorf("toolchain %s: tool %s has no version command", s.Name, t.Name)
+		}
+		if strings.ContainsFunc(t.Version, unicode.IsControl) {
+			return fmt.Errorf("toolchain %s: tool %s: its version command holds a control character", s.Name, t.Name)
 		}
 		if t.Path != "" && (!pathPattern.MatchString(t.Path) || strings.HasPrefix(t.Path, "/") || strings.Contains(t.Path, "..")) {
 			return fmt.Errorf("toolchain %s: tool %s: path %q, want one relative to the prefix", s.Name, t.Name, t.Path)

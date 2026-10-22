@@ -58,7 +58,7 @@ func serve(ctx context.Context, o serveOptions) error {
 	svc := &api.Service{
 		Sources:       sources,
 		Writer:        toolchain.Writer{Sources: sources, MountRoot: o.mountRoot},
-		Binaries:      binaries.Resolver{API: o.githubAPI, Token: os.Getenv("GITHUB_TOKEN"), Client: client},
+		Binaries:      binaries.Resolver{API: o.githubAPI, Token: os.Getenv("GITHUB_TOKEN"), Client: binaries.PublicClient(2 * time.Minute)},
 		DefaultSource: alpine.Name,
 	}
 

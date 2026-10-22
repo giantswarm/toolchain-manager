@@ -11,9 +11,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
+	"net/url"
 	"regexp"
 	"strings"
+	"syscall"
+	"time"
 )
 
 // Arches are the architectures a toolchain image is built for, Docker's
@@ -74,18 +78,28 @@ type Resolver struct {
 	Client *http.Client
 }
 
-var namePattern = regexp.MustCompile(`^[a-z0-9][a-z0-9._+-]*$`)
+var (
+	namePattern       = regexp.MustCompile(`^[a-z0-9][a-z0-9._+-]*$`)
+	versionPattern    = regexp.MustCompile(`^[A-Za-z0-9._+-]+$`)
+	repositoryPattern = regexp.MustCompile(`^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$`)
+)
 
 // Resolve returns the binary req names, every architecture pinned.
 func (r Resolver) Resolve(ctx context.Context, req Request) (Binary, error) {
 	if !namePattern.MatchString(req.Name) {
 		return Binary{}, fmt.Errorf("binary name %q: want a command name ([a-z0-9._+-])", req.Name)
 	}
-	if req.Version == "" {
-		return Binary{}, fmt.Errorf("binary %s: no version", req.Name)
+	if !versionPattern.MatchString(req.Version) {
+		return Binary{}, fmt.Errorf("binary %s: version %q, want a tag or version ([A-Za-z0-9._+-])", req.Name, req.Version)
 	}
 	if (req.Repository == "") == (req.URL == "") {
 		return Binary{}, fmt.Errorf("binary %s: name either a GitHub repository with its asset or a URL", req.Name)
+	}
+	if req.Repository != "" && (!repositoryPattern.MatchString(req.Repository) || strings.Contains(req.Repository, "..")) {
+		return Binary{}, fmt.Errorf("binary %s: repository %q, want owner/name", req.Name, req.Repository)
+	}
+	if req.URL != "" && !strings.HasPrefix(req.URL, "https://") {
+		return Binary{}, fmt.Errorf("binary %s: URL %q, want https", req.Name, req.URL)
 	}
 	if req.Repository != "" && req.Asset == "" {
 		return Binary{}, fmt.Errorf("binary %s: no asset of %s's release %s named", req.Name, req.Repository, req.Version)
@@ -174,14 +188,11 @@ func (r Resolver) client() *http.Client {
 }
 
 func (r Resolver) release(ctx context.Context, repo, tag string) (*release, error) {
-	if strings.Count(repo, "/") != 1 {
-		return nil, fmt.Errorf("repository %q: want owner/name", repo)
-	}
 	api := r.API
 	if api == "" {
 		api = "https://api.github.com"
 	}
-	u := fmt.Sprintf("%s/repos/%s/releases/tags/%s", strings.TrimSuffix(api, "/"), repo, tag)
+	u := fmt.Sprintf("%s/repos/%s/releases/tags/%s", strings.TrimSuffix(api, "/"), repo, url.PathEscape(tag))
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
 	if err != nil {
 		return nil, err
@@ -226,4 +237,30 @@ func (r Resolver) sha256(ctx context.Context, u string) (string, error) {
 		return "", fmt.Errorf("GET %s: %w", u, err)
 	}
 	return hex.EncodeToString(h.Sum(nil)), nil
+}
+
+// PublicClient is an HTTP client that reaches public addresses only: a
+// download URL is the caller's, so a private, loopback, link-local or
+// unspecified address is refused when it is dialled, after any redirect and
+// DNS answer.
+func PublicClient(timeout time.Duration) *http.Client {
+	dialer := &net.Dialer{
+		Timeout: 30 * time.Second,
+		Control: func(_, address string, _ syscall.RawConn) error {
+			host, _, err := net.SplitHostPort(address)
+			if err != nil {
+				return err
+			}
+			ip := net.ParseIP(host)
+			if ip == nil || ip.IsPrivate() || ip.IsLoopback() || ip.IsLinkLocalUnicast() ||
+				ip.IsLinkLocalMulticast() || ip.IsUnspecified() || ip.IsMulticast() {
+				return fmt.Errorf("refusing to connect to %s: not a public address", host)
+			}
+			return nil
+		},
+	}
+	transport := http.DefaultTransport.(*http.Transport).Clone()
+	transport.DialContext = dialer.DialContext
+	transport.Proxy = nil
+	return &http.Client{Timeout: timeout, Transport: transport}
 }
