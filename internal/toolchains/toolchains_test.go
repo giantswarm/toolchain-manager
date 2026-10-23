@@ -370,3 +370,22 @@ func TestDeprecateNeedsPushOrAnOwner(t *testing.T) {
 		t.Errorf("without agent-manager: %v", err)
 	}
 }
+
+func TestDeprecateActsOnlyOnTheDeprecationItRecords(t *testing.T) {
+	c := newCatalog(t, platform)
+	c.Users = &usage{}
+	// A record under the name of acme/tools' helm that records another
+	// repository's toolchain.
+	if err := c.Sources.Client.Create(context.Background(), &v1alpha1.ToolchainDeprecation{
+		ObjectMeta: metav1.ObjectMeta{Name: deprecationName("acme/tools", "helm", ""), Namespace: ns},
+		Spec:       v1alpha1.ToolchainDeprecationSpec{Repository: "other/repo", Toolchain: "helm", DeprecatedBy: "mallory"},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	c.Sources.Owners = sources.Owners{Emails: []string{"alice@example.com"}}
+	for _, in := range []DeprecateInput{{Name: "helm", Restore: true}, {Name: "helm", Confirm: true}} {
+		if _, err := c.Deprecate(identity.ContextWithIDToken(as("grant"), "dex"), in); err == nil || !strings.Contains(err.Error(), "records helm all of other/repo") {
+			t.Errorf("%+v: %v", in, err)
+		}
+	}
+}

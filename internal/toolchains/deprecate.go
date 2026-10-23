@@ -121,12 +121,16 @@ func (c *Catalog) Deprecate(ctx context.Context, in DeprecateInput) (DeprecateRe
 		return DeprecateResult{}, err
 	}
 	key := client.ObjectKey{Namespace: c.Sources.Namespace, Name: deprecationName(t.Repository, t.Name, version)}
-	var existing v1alpha1.ToolchainDeprecation
-	err = c.Sources.Client.Get(ctx, key, &existing)
+	var existing deprecation
+	err = c.Sources.Client.Get(ctx, key, &existing.ToolchainDeprecation)
 	if err != nil && !apierrors.IsNotFound(err) {
 		return DeprecateResult{}, fmt.Errorf("read the deprecation of %s: %w", what, err)
 	}
 	found := err == nil
+	if found && !existing.matches(t.Repository, t.Name, version) {
+		return DeprecateResult{}, fmt.Errorf("deprecation %s records %s %s of %s, not %s of %s: an installation owner resolves it", key.Name,
+			existing.Spec.Toolchain, orAll(existing.Spec.Version), existing.Spec.Repository, what, t.Repository)
+	}
 
 	if in.Restore {
 		res.Deprecated = false
@@ -134,7 +138,7 @@ func (c *Catalog) Deprecate(ctx context.Context, in DeprecateInput) (DeprecateRe
 			res.Message = fmt.Sprintf("%s of %s is not deprecated", what, t.Repository)
 			return res, nil
 		}
-		if err := c.Sources.Client.Delete(ctx, &existing); err != nil && !apierrors.IsNotFound(err) {
+		if err := c.Sources.Client.Delete(ctx, &existing.ToolchainDeprecation); err != nil && !apierrors.IsNotFound(err) {
 			return DeprecateResult{}, fmt.Errorf("take back the deprecation of %s: %w", what, err)
 		}
 		res.Changed = true
@@ -199,11 +203,23 @@ func (c *Catalog) mayDeprecate(ctx context.Context, id *identity.Identity, repos
 // repository, and per version.
 func deprecationName(repository, name, version string) string {
 	sum := sha256.Sum256([]byte(strings.ToLower(repository)))
-	scope := "all"
-	if version != "" {
-		scope = version
+	return name + "-" + orAll(version) + "-" + hex.EncodeToString(sum[:16])
+}
+
+func orAll(version string) string {
+	if version == "" {
+		return "all"
 	}
-	return name + "-" + scope + "-" + hex.EncodeToString(sum[:4])
+	return version
+}
+
+// deprecation is a ToolchainDeprecation the tools read back.
+type deprecation struct{ v1alpha1.ToolchainDeprecation }
+
+// matches reports whether it records the toolchain name of repository at
+// version: an object name is a hash, so what it records decides.
+func (d deprecation) matches(repository, name, version string) bool {
+	return strings.EqualFold(d.Spec.Repository, repository) && d.Spec.Toolchain == name && d.Spec.Version == version
 }
 
 // deprecationSet is the installation's deprecations, by repository,
