@@ -74,9 +74,6 @@ func (f *fakeSource) serve(w http.ResponseWriter, r *http.Request) {
 		write(fmt.Sprintf(`{"login":%q}`, f.login))
 	case r.Method == http.MethodPost && path == "/graphql":
 		write(`{"data":{"enablePullRequestAutoMerge":{"clientMutationId":null}}}`)
-	case r.Method == http.MethodPost && strings.HasSuffix(path, "/reviews"):
-		w.WriteHeader(http.StatusOK)
-		write(`{}`)
 	case r.Method == http.MethodGet && path == "/releases":
 		write(f.list)
 	case r.Method == http.MethodGet && path == "":

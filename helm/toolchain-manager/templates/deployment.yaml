@@ -63,7 +63,6 @@ spec:
             {{- if .Values.klausGateway.url }}
             - --klaus-gateway-url={{ .Values.klausGateway.url }}
             - --klaus-gateway-token-file=/var/run/secrets/klaus-gateway/token
-            - --tools-prefix=x_{{ .Values.muster.mcpServer.name }}_
             {{- end }}
             {{- end }}
           env:

@@ -7,7 +7,6 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/giantswarm/toolchain-manager/internal/gateway"
 	"github.com/giantswarm/toolchain-manager/internal/github"
 	"github.com/giantswarm/toolchain-manager/internal/identity"
 	"github.com/giantswarm/toolchain-manager/internal/sources"
@@ -17,25 +16,14 @@ import (
 
 // An update is a pull request with new pins, opened as the person on the
 // branch toolchain-update/<name>: the Dockerfile the manager wrote, its
-// versions changed and nothing else. A patch or minor update merges by
-// auto-merge once the source's required checks, the toolchain contract
-// check among them, are green. A major one asks the source's owning team in
-// its Slack channel, through klaus-gateway, whose Approve calls
-// approve_update as the clicking member: their approving review, then the
-// same auto-merge. Approving on GitHub is equivalent.
-
-// ReviewAsker posts an ask to a team.
-type ReviewAsker interface {
-	Ask(ctx context.Context, r gateway.Review) (gateway.Posted, error)
-}
-
-// UpdateBranchPrefix starts the branch of every update pull request, which
-// approve_update approves only.
-const UpdateBranchPrefix = "toolchain-update/"
+// versions changed and nothing else. It is reviewed like any pull request
+// of its source: GitHub's auto-merge, armed by the person, merges it once
+// the source's required reviews and checks, the toolchain contract check
+// among them, pass. The manager never reviews it.
 
 // UpdateBranch is the branch update_toolchain opens a toolchain's update
 // from.
-func UpdateBranch(name string) string { return UpdateBranchPrefix + name }
+func UpdateBranch(name string) string { return "toolchain-update/" + name }
 
 // watch hands the newest offered version of t to the background job and
 // marks t's version with its outdated notification.
@@ -71,11 +59,10 @@ type Update struct {
 	Pull       int              `json:"pull"`
 	PullURL    string           `json:"pullURL"`
 	Branch     string           `json:"branch"`
-	// AutoMerge: GitHub merges it once its required checks are green.
+	// AutoMerge: GitHub merges it once its required reviews and checks
+	// pass.
 	AutoMerge bool `json:"autoMerge"`
-	// Asked is the team's channel the major update's ask was posted to.
-	Asked string `json:"asked,omitempty"`
-	// Note is why it does not merge by itself: no auto-merge, or no ask.
+	// Note is why auto-merge is not armed.
 	Note string `json:"note,omitempty"`
 }
 
@@ -131,10 +118,8 @@ func (c *Catalog) Update(ctx context.Context, ref, name string, only []string) (
 	if err != nil {
 		return UpdateResult{}, err
 	}
-	if plan.Major() {
-		c.ask(ctx, src, u)
-	} else if err := c.GitHub.EnableAutoMerge(ctx, token, u.nodeID); err != nil {
-		u.Note = fmt.Sprintf("auto-merge is not armed (%v): merge it once the toolchain contract check is green", err)
+	if err := c.GitHub.EnableAutoMerge(ctx, token, u.nodeID); err != nil {
+		u.Note = fmt.Sprintf("auto-merge is not armed (%v): merge it once its required reviews and checks pass", err)
 	} else {
 		u.AutoMerge = true
 	}
@@ -148,11 +133,8 @@ type openedUpdate struct {
 
 func (u *openedUpdate) message() string {
 	msg := fmt.Sprintf("opened %s updating toolchain %s %s: %s", u.PullURL, u.Toolchain, u.From, changeList(u.Changes))
-	switch {
-	case u.AutoMerge:
-		msg += "; it merges once the toolchain contract check is green, and the merge publishes the next version"
-	case u.Asked != "":
-		msg += fmt.Sprintf("; a major update: the owning team approves it in %s, then it merges once the toolchain contract check is green", u.Asked)
+	if u.AutoMerge {
+		msg += "; it merges once its required reviews and checks, the toolchain contract check among them, pass, and the merge publishes the next version"
 	}
 	if u.Note != "" {
 		msg += "; " + u.Note
@@ -223,42 +205,6 @@ func (c *Catalog) openUpdate(ctx context.Context, token string, src sources.Sour
 	}}, nil
 }
 
-// ask posts a major update's ask to the source's owning team.
-func (c *Catalog) ask(ctx context.Context, src sources.Source, u *openedUpdate) {
-	switch {
-	case c.Reviews == nil || c.ApproveTool == "":
-		u.Note = "no Slack ask is configured: an approving review on GitHub lets it merge"
-		return
-	case src.Team == "" || !strings.HasPrefix(src.SlackChannel, "C") && !strings.HasPrefix(src.SlackChannel, "G"):
-		u.Note = fmt.Sprintf("source %s names no owning team with its Slack channel's ID: an approving review on GitHub lets it merge", src.Name)
-		return
-	}
-	actor := ""
-	if id, ok := identity.FromContext(ctx); ok && id.EmailVerified {
-		actor = id.Email
-	}
-	var text strings.Builder
-	fmt.Fprintf(&text, "*Major update of toolchain `%s`* %s in `%s`:\n", u.Toolchain, u.From, u.Repository)
-	for _, ch := range u.Changes {
-		fmt.Fprintf(&text, "• %s `%s` %s → %s", ch.Kind, ch.Name, ch.From, ch.To)
-		if ch.Major {
-			text.WriteString(" — major")
-		}
-		text.WriteString("\n")
-	}
-	text.WriteString("*Approve* submits your approving review; it merges once the toolchain contract check is green, and the merge publishes the next major version.")
-	posted, err := c.Reviews.Ask(ctx, gateway.Review{
-		Team: src.Team, Channel: src.SlackChannel, Text: text.String(), Actor: actor,
-		PullRequests: []string{u.PullURL}, Link: u.PullURL,
-		Approve: gateway.Tool{Tool: c.ApproveTool, Arguments: map[string]any{"repository": u.Repository, "pull": u.Pull}},
-	})
-	if err != nil {
-		u.Note = fmt.Sprintf("the Slack ask failed (%v): an approving review on GitHub lets it merge", err)
-		return
-	}
-	u.Asked = posted.Channel
-}
-
 // updateTitle is the squash subject, which sets the release's bump: a major
 // pin a breaking change, a minor one a feature, patches a fix.
 func updateTitle(name string, plan updates.Plan) string {
@@ -313,79 +259,8 @@ func updateBody(t Toolchain, plan updates.Plan) string {
 		fmt.Fprintf(&b, "| %s `%s` | %s | %s%s |\n", c.Kind, c.Name, c.From, c.To, major)
 	}
 	if plan.Major() {
-		b.WriteString("\nA major update: the source's owning team approves it in its Slack channel (or here), then it merges once the toolchain contract check is green.\n")
-	} else {
-		b.WriteString("\nA patch or minor update: it merges by itself once the toolchain contract check is green.\n")
+		b.WriteString("\nA major update: its release is the next major version.\n")
 	}
+	b.WriteString("\nIt is reviewed like any pull request here, and merges once the required reviews and checks, the toolchain contract check among them, pass.\n")
 	return b.String()
-}
-
-// ApproveResult is approve_update's answer.
-type ApproveResult struct {
-	Repository string `json:"repository"`
-	Pull       int    `json:"pull"`
-	PullURL    string `json:"pullURL"`
-	ApprovedBy string `json:"approvedBy"`
-	AutoMerge  bool   `json:"autoMerge"`
-	Answer
-}
-
-// ApproveUpdate submits the person's approving review of an update pull
-// request of an offered source, and arms its auto-merge: the call a major
-// update's Approve in Slack makes as the clicking member. The person who
-// opened it does not approve it, and the person needs push access, where
-// their review counts.
-func (c *Catalog) ApproveUpdate(ctx context.Context, repository string, pull int) (ApproveResult, error) {
-	repository, err := sources.NormalizeRepository(repository)
-	if err != nil {
-		return ApproveResult{}, err
-	}
-	src, err := c.one(ctx, repository)
-	if err != nil {
-		return ApproveResult{}, err
-	}
-	token, ok := identity.Grant(ctx)
-	if !ok {
-		return ApproveResult{Answer: c.grantRequired()}, nil
-	}
-	pr, err := c.GitHub.Pull(ctx, token, src.Repository, pull)
-	switch {
-	case errors.Is(err, github.ErrRefused):
-		return ApproveResult{Answer: c.grantRequired()}, nil
-	case errors.Is(err, github.ErrNotFound):
-		return ApproveResult{}, fmt.Errorf("%s has no pull request %d your sign-in reaches", src.Repository, pull)
-	case err != nil:
-		return ApproveResult{}, err
-	}
-	if !strings.HasPrefix(pr.Head.Ref, UpdateBranchPrefix) {
-		return ApproveResult{}, fmt.Errorf("%s is no toolchain update (its branch is %s, not %s<name>)", pr.HTMLURL, pr.Head.Ref, UpdateBranchPrefix)
-	}
-	if pr.State != "open" {
-		return ApproveResult{}, fmt.Errorf("%s is %s already", pr.HTMLURL, pr.State)
-	}
-	login, err := c.GitHub.Login(ctx, token)
-	if err != nil {
-		return ApproveResult{}, err
-	}
-	if strings.EqualFold(login, pr.User.Login) {
-		return ApproveResult{}, fmt.Errorf("you opened %s: another member of the team approves it", pr.HTMLURL)
-	}
-	repo, err := c.GitHub.Repository(ctx, token, src.Repository)
-	if err != nil {
-		return ApproveResult{}, err
-	}
-	if !repo.Writable() {
-		return ApproveResult{}, fmt.Errorf("you cannot push to %s, so your review does not count: a maintainer approves it", src.Repository)
-	}
-	if err := c.GitHub.Approve(ctx, token, src.Repository, pull, "Approved with the toolchain-manager's approve_update."); err != nil {
-		return ApproveResult{}, fmt.Errorf("approve %s: %w", pr.HTMLURL, err)
-	}
-	res := ApproveResult{Repository: src.Repository, Pull: pull, PullURL: pr.HTMLURL, ApprovedBy: login}
-	res.Message = fmt.Sprintf("approved by %s: %s merges once the toolchain contract check is green", login, pr.HTMLURL)
-	if err := c.GitHub.EnableAutoMerge(ctx, token, pr.NodeID); err != nil {
-		res.Message = fmt.Sprintf("approved by %s; auto-merge is not armed (%v): merge %s once the toolchain contract check is green", login, err, pr.HTMLURL)
-	} else {
-		res.AutoMerge = true
-	}
-	return res, nil
 }

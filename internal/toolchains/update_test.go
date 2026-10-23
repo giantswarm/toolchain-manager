@@ -16,7 +16,6 @@ import (
 
 	"github.com/giantswarm/toolchain-manager/api/v1alpha1"
 	"github.com/giantswarm/toolchain-manager/internal/binaries"
-	"github.com/giantswarm/toolchain-manager/internal/gateway"
 	"github.com/giantswarm/toolchain-manager/internal/github"
 	"github.com/giantswarm/toolchain-manager/internal/packages"
 	"github.com/giantswarm/toolchain-manager/internal/packages/alpine"
@@ -76,21 +75,12 @@ func lintDockerfile(t *testing.T, u *updates.Updater, helm, golangci string) str
 	return string(d)
 }
 
-type asks struct{ got []gateway.Review }
-
-func (a *asks) Ask(_ context.Context, r gateway.Review) (gateway.Posted, error) {
-	a.got = append(a.got, r)
-	return gateway.Posted{ID: "rv1", Channel: r.Channel, TS: "1.0"}, nil
-}
-
 // updateCatalog is acme/tools publishing lint v0.1.0 from dockerfile, its
 // team team-tools in C0123ABCDE.
-func updateCatalog(t *testing.T, latest, helm, golangci string) (*Catalog, *fakeSource, *asks) {
+func updateCatalog(t *testing.T, latest, helm, golangci string) (*Catalog, *fakeSource) {
 	t.Helper()
 	c, f := acmeCatalog(t)
 	c.Updater = newUpdater(t, latest)
-	a := &asks{}
-	c.Reviews, c.ApproveTool = a, "x_toolchain-manager_approve_update"
 	ctx := context.Background()
 	var src v1alpha1.ToolchainSource
 	if err := c.Sources.Client.Get(ctx, client.ObjectKey{Namespace: ns, Name: "acme-tools"}, &src); err != nil {
@@ -104,7 +94,7 @@ func updateCatalog(t *testing.T, latest, helm, golangci string) (*Catalog, *fake
 	f.files["lint/v0.1.0:toolchains/lint/Dockerfile"] = d
 	f.files["main:toolchains/lint/Dockerfile"] = d
 	f.list = `[{"tag_name":"lint/v0.1.0","html_url":"https://github.com/acme/tools/releases/tag/lint/v0.1.0"}]`
-	return c, f, a
+	return c, f
 }
 
 func called(f *fakeSource, prefix string) []string {
@@ -117,8 +107,8 @@ func called(f *fakeSource, prefix string) []string {
 	return out
 }
 
-func TestUpdateOpensAMinorUpdateThatMergesOnTheGreenCheck(t *testing.T) {
-	c, f, a := updateCatalog(t, "v2.15.0", "3.19.0-r1", "v2.14.0")
+func TestUpdateOpensAMinorUpdateThatMergesOnceReviewedAndGreen(t *testing.T) {
+	c, f := updateCatalog(t, "v2.15.0", "3.19.0-r1", "v2.14.0")
 
 	res, err := c.Update(as("grant"), "", "lint", nil)
 	if err != nil {
@@ -140,8 +130,8 @@ func TestUpdateOpensAMinorUpdateThatMergesOnTheGreenCheck(t *testing.T) {
 	if got := called(f, "POST /graphql"); len(got) != 1 || !strings.Contains(got[0], `"id":"PR_7"`) {
 		t.Errorf("auto-merge calls = %q", got)
 	}
-	if len(a.got) != 0 {
-		t.Errorf("a minor update asked the team: %+v", a.got)
+	if got := called(f, "POST /pulls/7/reviews"); len(got) != 0 {
+		t.Errorf("the manager reviewed its update: %q", got)
 	}
 
 	if _, err := c.Update(as("grant"), "", "lint", nil); err == nil || !strings.Contains(err.Error(), "open update, https://github.com/acme/tools/pull/7") {
@@ -149,84 +139,46 @@ func TestUpdateOpensAMinorUpdateThatMergesOnTheGreenCheck(t *testing.T) {
 	}
 }
 
-func TestUpdateOfAMajorAsksTheTeamAndApproveMergesIt(t *testing.T) {
-	c, f, a := updateCatalog(t, "v2.15.0", "3.19.0-r9", "v1.64.8")
+func TestUpdateOfAMajorIsReviewedLikeAnyOther(t *testing.T) {
+	c, f := updateCatalog(t, "v2.15.0", "3.19.0-r9", "v1.64.8")
 
 	res, err := c.Update(as("grant"), "acme/tools", "lint", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if u := res.Update; u == nil || !u.Major || u.AutoMerge || u.Asked != "C0123ABCDE" || f.pulls[0]["title"] != "feat(lint)!: update golangci-lint v1.64.8 → v2.15.0" {
+	if u := res.Update; u == nil || !u.Major || !u.AutoMerge || u.Note != "" || f.pulls[0]["title"] != "feat(lint)!: update golangci-lint v1.64.8 → v2.15.0" {
 		t.Fatalf("update = %+v, title %v (%s)", u, f.pulls[0]["title"], res.Message)
 	}
-	if got := called(f, "POST /graphql"); len(got) != 0 {
-		t.Errorf("a major update armed auto-merge: %q", got)
+	if body := f.pulls[0]["body"].(string); !strings.Contains(body, "next major version") || !strings.Contains(body, "required reviews and checks") {
+		t.Errorf("body = %s", body)
 	}
-	if len(a.got) != 1 {
-		t.Fatalf("asks = %+v", a.got)
+	if got := called(f, "POST /graphql"); len(got) != 1 || !strings.Contains(got[0], `"id":"PR_7"`) {
+		t.Errorf("auto-merge calls = %q", got)
 	}
-	ask := a.got[0]
-	if ask.Team != "team-tools" || ask.Channel != "C0123ABCDE" || ask.Actor != "alice@example.com" || ask.Approve.Tool != "x_toolchain-manager_approve_update" ||
-		ask.Approve.Arguments["repository"] != "acme/tools" || ask.Approve.Arguments["pull"] != 7 ||
-		len(ask.PullRequests) != 1 || ask.PullRequests[0] != "https://github.com/acme/tools/pull/7" || !strings.Contains(ask.Text, "binary `golangci-lint` v1.64.8 → v2.15.0 — major") {
-		t.Errorf("ask = %+v", ask)
-	}
-
-	// The Approve click calls approve_update as the member.
-	if _, err := c.ApproveUpdate(as("grant"), "acme/tools", 7); err == nil || !strings.Contains(err.Error(), "you opened") {
-		t.Errorf("the author's approval = %v", err)
-	}
-	f.login = "bob-gh"
-	f.push = false
-	if _, err := c.ApproveUpdate(as("grant"), "acme/tools", 7); err == nil || !strings.Contains(err.Error(), "cannot push") {
-		t.Errorf("an approval without push access = %v", err)
-	}
-	f.push = true
-	got, err := c.ApproveUpdate(as("grant"), "https://github.com/acme/tools", 7)
-	if err != nil || got.ApprovedBy != "bob-gh" || !got.AutoMerge || !strings.Contains(got.Message, "approved by bob-gh") {
-		t.Fatalf("approval = %+v, %v", got, err)
-	}
-	if reviews := called(f, "POST /pulls/7/reviews"); len(reviews) != 1 || !strings.Contains(reviews[0], `"event":"APPROVE"`) {
-		t.Errorf("reviews = %q", reviews)
-	}
-	if merges := called(f, "POST /graphql"); len(merges) != 1 {
-		t.Errorf("auto-merge calls = %q", merges)
-	}
-
-	// Only an update's pull request is approved.
-	f.pulls[0]["head"] = map[string]any{"ref": "toolchain/lint", "sha": "head"}
-	if _, err := c.ApproveUpdate(as("grant"), "acme/tools", 7); err == nil || !strings.Contains(err.Error(), "no toolchain update") {
-		t.Errorf("approving another pull request = %v", err)
+	if got := called(f, "POST /pulls/7/reviews"); len(got) != 0 {
+		t.Errorf("the manager reviewed its update: %q", got)
 	}
 }
 
 func TestUpdateRefusals(t *testing.T) {
-	c, _, _ := updateCatalog(t, "v2.15.0", "3.19.0-r9", "v2.15.0")
+	c, _ := updateCatalog(t, "v2.15.0", "3.19.0-r9", "v2.15.0")
 	if res, err := c.Update(as("grant"), "", "lint", nil); err != nil || res.Update != nil || !strings.Contains(res.Message, "up to date") {
 		t.Errorf("an up-to-date toolchain = %+v, %v", res, err)
 	}
 
-	// A major update without a team channel waits for a review on GitHub.
-	c, _, a := updateCatalog(t, "v2.15.0", "3.19.0-r9", "v1.64.8")
-	c.Reviews = nil
-	res, err := c.Update(as("grant"), "", "lint", nil)
-	if err != nil || res.Update.Asked != "" || !strings.Contains(res.Update.Note, "approving review on GitHub") || len(a.got) != 0 {
-		t.Errorf("a major update without the gateway = %+v, %v", res.Update, err)
-	}
-
-	c, f, _ := updateCatalog(t, "v2.15.0", "3.19.0-r1", "v2.15.0")
+	c, f := updateCatalog(t, "v2.15.0", "3.19.0-r1", "v2.15.0")
 	f.files["lint/v0.1.0:toolchains/lint/Dockerfile"] = strings.ReplaceAll(handWritten, `name="go"`, `name="lint"`)
 	if _, err := c.Update(as("grant"), "", "lint", nil); err == nil || !strings.Contains(err.Error(), "hand-written") {
 		t.Errorf("a hand-written toolchain = %v", err)
 	}
 
-	c, f, _ = updateCatalog(t, "v2.15.0", "3.19.0-r1", "v2.15.0")
+	c, f = updateCatalog(t, "v2.15.0", "3.19.0-r1", "v2.15.0")
 	f.files["main:toolchains/lint/Dockerfile"] += "\n"
 	if _, err := c.Update(as("grant"), "", "lint", nil); err == nil || !strings.Contains(err.Error(), "changed since lint v0.1.0") {
 		t.Errorf("a Dockerfile changed since its release = %v", err)
 	}
 
-	c, f, _ = updateCatalog(t, "v2.15.0", "3.19.0-r1", "v2.15.0")
+	c, f = updateCatalog(t, "v2.15.0", "3.19.0-r1", "v2.15.0")
 	f.push = false
 	if _, err := c.Update(as("grant"), "", "lint", nil); err == nil || !strings.Contains(err.Error(), "cannot push") {
 		t.Errorf("an update without push access = %v", err)
@@ -234,7 +186,7 @@ func TestUpdateRefusals(t *testing.T) {
 }
 
 func TestListAndDescribeCarryTheOutdatedMark(t *testing.T) {
-	c, _, _ := updateCatalog(t, "v2.15.0", "3.19.0-r1", "v2.15.0")
+	c, _ := updateCatalog(t, "v2.15.0", "3.19.0-r1", "v2.15.0")
 	scheme := runtime.NewScheme()
 	if err := corev1.AddToScheme(scheme); err != nil {
 		t.Fatal(err)

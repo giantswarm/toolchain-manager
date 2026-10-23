@@ -46,12 +46,11 @@ type ToolchainSourceSpec struct {
 	// Registry is the image repository prefix the source's toolchains
 	// publish under, <registry>/<name>.
 	Registry string `json:"registry"`
-	// SlackChannel is the owning team's channel that approves the source's
-	// updates: its ID (C0123ABCDE), which the asks are posted to, or its
-	// name.
+	// SlackChannel is the owning team's channel, told of the source's
+	// outdated toolchains: its ID (C0123ABCDE), which the notices are posted
+	// to, or its name.
 	SlackChannel string `json:"slackChannel"`
-	// Team is the owning GitHub team's slug, whose members approve a major
-	// update in SlackChannel.
+	// Team is the owning GitHub team's slug.
 	// +optional
 	Team string `json:"team,omitempty"`
 	// AddedBy is the person who added the source: their verified email,

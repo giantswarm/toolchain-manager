@@ -34,7 +34,7 @@ type Change struct {
 	From string `json:"from"`
 	To   string `json:"to"`
 	// Major: the major version changes (or a version is no semantic
-	// version), so the owning team approves the update.
+	// version), so the update's release is a major one.
 	Major bool `json:"major,omitempty"`
 }
 

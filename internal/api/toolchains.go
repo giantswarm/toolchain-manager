@@ -17,12 +17,11 @@ const (
 	ToolBuildStatus       = "toolchain_build_status"
 	ToolDeprecate         = "deprecate_toolchain"
 	ToolUpdate            = "update_toolchain"
-	ToolApproveUpdate     = "approve_update"
 )
 
 const toolchainsInstructions = " list_toolchains shows the toolchains the installation offers, each with its published versions and every version's tools and Harnesses: agent-manager's start_session takes a toolchain at any version it lists, the newest when none is named; describe_toolchain shows one version's tools, Harnesses and pins as its image declares them. create_toolchain opens a pull request in a source, as you, that adds a toolchain from the Dockerfile add_packages and add_binary returned (or a hand-written one); its merge publishes the toolchain once the contract check passes. toolchain_build_status follows that pull request from queued through its checks and the release to published, or to failed with the failing job's log. All of them read and write the sources with your grant of the toolchain-manager's GitHub App in muster."
 
-const updateInstructions = " A background job checks the pins of every toolchain the manager wrote and marks its newest version outdated (outdated in list_toolchains and describe_toolchain, and a notice in the owning team's Slack channel). update_toolchain opens the pull request with the new pins, as you: a patch or minor update merges once the toolchain contract check is green, a major one asks the owning team in its Slack channel, whose Approve calls approve_update as the member who clicks."
+const updateInstructions = " A background job checks the pins of every toolchain the manager wrote and marks its newest version outdated (outdated in list_toolchains and describe_toolchain, and a notice in the owning team's Slack channel). update_toolchain opens the pull request with the new pins, as you, and arms its auto-merge: it is reviewed like any pull request of its source and merges once the source's required reviews and checks, the toolchain contract check among them, pass."
 
 const deprecateInstructions = " deprecate_toolchain takes a toolchain, or one version, out of the offered list, so no new Session starts on it; it first names the agents whose default toolchains name it and the Sessions that hold its digest, and its image stays, so those Sessions keep resuming."
 
@@ -72,7 +71,7 @@ func addToolchainTools(s *mcpserver.MCPServer, c *toolchains.Catalog) {
 
 	if c.Updater != nil {
 		s.AddTool(mcp.NewTool(ToolUpdate,
-			mcp.WithDescription("Writes to a repository. Update a toolchain the toolchain-manager wrote: open a pull request, as you, on the branch toolchain-update/<name> that re-pins its newest offered version's outdated packages and binaries to their newest versions (every outdated one, or those packages names), its tools, Harnesses and egress unchanged. A patch or minor update arms auto-merge, so it merges once the toolchain contract check is green; a major one posts an ask to the source's owning team in its Slack channel, and merges once a member approves it and the check is green. A hand-written toolchain is refused, and so is a toolchain with an open update. Needs push access to the source. Answers status grant_required while you have not granted the toolchain-manager's GitHub App in muster."),
+			mcp.WithDescription("Writes to a repository. Update a toolchain the toolchain-manager wrote: open a pull request, as you, on the branch toolchain-update/<name> that re-pins its newest offered version's outdated packages and binaries to their newest versions (every outdated one, or those packages names), its tools, Harnesses and egress unchanged. It arms auto-merge, so it merges once the source's required reviews and checks, the toolchain contract check among them, pass: a reviewer of the source decides, the toolchain-manager never approves it. A hand-written toolchain is refused, and so is a toolchain with an open update. Needs push access to the source. Answers status grant_required while you have not granted the toolchain-manager's GitHub App in muster."),
 			mcp.WithString("name", mcp.Required(), mcp.Description("The toolchain's name, as list_toolchains shows it")),
 			mcp.WithArray("packages", mcp.Description("Only these outdated packages or binaries, by name; default every outdated one"), mcp.WithStringItems()),
 			source,
@@ -81,16 +80,6 @@ func addToolchainTools(s *mcpserver.MCPServer, c *toolchains.Catalog) {
 			mcp.WithIdempotentHintAnnotation(false),
 			mcp.WithOpenWorldHintAnnotation(true),
 		), t.update)
-
-		s.AddTool(mcp.NewTool(ToolApproveUpdate,
-			mcp.WithDescription("Writes to a repository. Approve a toolchain update's pull request, as you: your approving review, then auto-merge, so it merges once the toolchain contract check is green. What a major update's Approve in the owning team's Slack channel calls as the member who clicks. Only an update_toolchain pull request (branch toolchain-update/<name>) of an offered source; not by the person who opened it; needs push access to the source. Answers status grant_required while you have not granted the toolchain-manager's GitHub App in muster."),
-			mcp.WithString("repository", mcp.Required(), mcp.Description("The source's repository, owner/name")),
-			mcp.WithNumber("pull", mcp.Required(), mcp.Description("The update's pull request number")),
-			mcp.WithReadOnlyHintAnnotation(false),
-			mcp.WithDestructiveHintAnnotation(false),
-			mcp.WithIdempotentHintAnnotation(true),
-			mcp.WithOpenWorldHintAnnotation(true),
-		), t.approveUpdate)
 	}
 
 	if c.Users != nil {
@@ -167,14 +156,6 @@ func (t *toolchainTools) update(ctx context.Context, req mcp.CallToolRequest) (*
 		return mcp.NewToolResultError(err.Error()), nil
 	}
 	res, err := t.c.Update(ctx, args.Source, args.Name, args.Packages)
-	if err != nil {
-		return mcp.NewToolResultError(err.Error()), nil
-	}
-	return mcp.NewToolResultStructured(res, res.Message), nil
-}
-
-func (t *toolchainTools) approveUpdate(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	res, err := t.c.ApproveUpdate(ctx, req.GetString("repository", ""), req.GetInt("pull", 0))
 	if err != nil {
 		return mcp.NewToolResultError(err.Error()), nil
 	}
