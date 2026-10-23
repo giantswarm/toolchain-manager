@@ -75,7 +75,8 @@ func (c *Client) Users(ctx context.Context, bearer, name, version string) (toolc
 }
 
 // call runs tool through muster's call_tool as the person, one MCP session
-// per call, and returns its structured result.
+// per call, and returns its JSON result: the structured content, else the
+// text when that is a JSON object, as agent-manager answers.
 func (c *Client) call(ctx context.Context, bearer, tool string, args map[string]any) (json.RawMessage, error) {
 	if bearer == "" {
 		return nil, errors.New("muster: the call carries no Dex ID token of the person")
@@ -112,6 +113,9 @@ func (c *Client) call(ctx context.Context, bearer, tool string, args map[string]
 		return nil, fmt.Errorf("%s: %s", tool, textOf(inner))
 	}
 	raw := structuredOf(inner)
+	if t := strings.TrimSpace(textOf(inner)); len(raw) == 0 && strings.HasPrefix(t, "{") && json.Valid([]byte(t)) {
+		raw = json.RawMessage(t)
+	}
 	if len(raw) == 0 {
 		return nil, fmt.Errorf("%s: malformed answer: no structured result", tool)
 	}

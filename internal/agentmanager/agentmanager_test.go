@@ -92,6 +92,14 @@ func TestUsersAsThePerson(t *testing.T) {
 	if _, err := c.Users(t.Context(), "dex", "go", ""); err != nil || !reflect.DeepEqual(f.args[1], map[string]any{"name": "go"}) {
 		t.Errorf("the whole toolchain: args %v, %v", f.args[1], err)
 	}
+
+	// agent-manager answers its JSON as text.
+	f.answer = func(string) *mcp.CallToolResult {
+		return mcp.NewToolResultText(`{"agents":[],"sessions":[{"id":"s2","namespace":"org-acme","agent":"coder","image":"r/go@sha256:bb"}]}`)
+	}
+	if u, err := c.Users(t.Context(), "dex", "go", ""); err != nil || len(u.Sessions) != 1 || u.Sessions[0].ID != "s2" {
+		t.Errorf("a text answer = %+v, %v", u, err)
+	}
 }
 
 func TestUsersRefused(t *testing.T) {
