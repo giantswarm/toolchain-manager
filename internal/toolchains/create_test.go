@@ -31,6 +31,8 @@ type fakeSource struct {
 	statuses map[string]string // sha → statuses JSON
 	tags     string            // matching-refs JSON
 	releases map[string]string // tag → release JSON
+	list     string            // releases JSON
+	login    string            // the token's GitHub login
 	calls    []string
 }
 
@@ -44,6 +46,8 @@ func newFakeSource(t *testing.T) (*fakeSource, *github.Client) {
 		statuses: map[string]string{},
 		tags:     "[]",
 		releases: map[string]string{},
+		list:     "[]",
+		login:    "alice-gh",
 	}
 	srv := httptest.NewServer(http.HandlerFunc(f.serve))
 	t.Cleanup(srv.Close)
@@ -62,7 +66,19 @@ func (f *fakeSource) serve(w http.ResponseWriter, r *http.Request) {
 	var in map[string]any
 	_ = json.NewDecoder(r.Body).Decode(&in)
 	write := func(v string) { _, _ = w.Write([]byte(v)) }
+	if b, err := json.Marshal(in); err == nil && in != nil {
+		f.calls[len(f.calls)-1] += " " + string(b)
+	}
 	switch {
+	case r.Method == http.MethodGet && path == "/user":
+		write(fmt.Sprintf(`{"login":%q}`, f.login))
+	case r.Method == http.MethodPost && path == "/graphql":
+		write(`{"data":{"enablePullRequestAutoMerge":{"clientMutationId":null}}}`)
+	case r.Method == http.MethodPost && strings.HasSuffix(path, "/reviews"):
+		w.WriteHeader(http.StatusOK)
+		write(`{}`)
+	case r.Method == http.MethodGet && path == "/releases":
+		write(f.list)
 	case r.Method == http.MethodGet && path == "":
 		write(fmt.Sprintf(`{"full_name":"acme/tools","default_branch":"main","permissions":{"push":%t}}`, f.push))
 	case r.Method == http.MethodGet && strings.HasPrefix(path, "/contents/"):
@@ -93,6 +109,7 @@ func (f *fakeSource) serve(w http.ResponseWriter, r *http.Request) {
 		write(`{}`)
 	case r.Method == http.MethodPost && path == "/pulls":
 		pr := map[string]any{"number": 7 + len(f.pulls), "html_url": fmt.Sprintf("https://github.com/acme/tools/pull/%d", 7+len(f.pulls)),
+			"node_id": fmt.Sprintf("PR_%d", 7+len(f.pulls)), "user": map[string]any{"login": f.login},
 			"title": in["title"], "body": in["body"], "state": "open", "head": map[string]any{"ref": in["head"], "sha": "head"}, "base": in["base"]}
 		f.pulls = append([]map[string]any{pr}, f.pulls...)
 		w.WriteHeader(http.StatusCreated)
