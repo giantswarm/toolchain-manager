@@ -1,8 +1,10 @@
 {{- /*
-The ServiceAccount keeps the added sources in the release namespace once the
-tools checked the caller: a person gets no right on ToolchainSources here, so
-only an installation owner's approve_source records an approval (status).
-Nothing else is read or written.
+The ServiceAccount keeps the added sources and the deprecations in the
+release namespace once the tools checked the caller: a person gets no right
+on ToolchainSources or ToolchainDeprecations here, so only an installation
+owner's approve_source records an approval (status), and only a person who
+can push to a source, or an owner, deprecates its toolchains. Nothing else is
+read or written.
 */}}
 apiVersion: v1
 kind: ServiceAccount
@@ -27,6 +29,9 @@ rules:
   - apiGroups: [toolchain-manager.giantswarm.io]
     resources: [toolchainsources/status]
     verbs: [update]
+  - apiGroups: [toolchain-manager.giantswarm.io]
+    resources: [toolchaindeprecations]
+    verbs: [get, list, create, delete]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding

@@ -19,6 +19,7 @@ import (
 	"sigs.k8s.io/yaml"
 
 	"github.com/giantswarm/toolchain-manager/api/v1alpha1"
+	"github.com/giantswarm/toolchain-manager/internal/agentmanager"
 	"github.com/giantswarm/toolchain-manager/internal/api"
 	"github.com/giantswarm/toolchain-manager/internal/binaries"
 	"github.com/giantswarm/toolchain-manager/internal/github"
@@ -49,6 +50,8 @@ type serveOptions struct {
 	grantApp         string
 	grantPinned      bool
 	appInstallURL    string
+	musterMCPURL     string
+	agentManagerTool string
 }
 
 func newServeCommand() *cobra.Command {
@@ -76,6 +79,8 @@ func newServeCommand() *cobra.Command {
 	c.Flags().StringVar(&o.grantApp, "grant-app", "github", "provider App muster keeps the person's grant of the toolchain-manager's GitHub App as, attached in "+server.GrantHeaderPrefix+"<app> (the MCPServer's auth.providerApps)")
 	c.Flags().BoolVar(&o.grantPinned, "grant-pinned", false, "the MCPServer is pinned to the toolchain-manager's GitHub App (auth.authorizationServer, grantScope subject, forwardIdentity): the bearer is the person's App token and the Dex ID token arrives in "+server.IDTokenHeader)
 	c.Flags().StringVar(&o.appInstallURL, "github-app-install-url", "", "where a repository's owner installs the toolchain-manager's GitHub App, https://github.com/apps/<slug>/installations/new")
+	c.Flags().StringVar(&o.musterMCPURL, "muster-mcp-url", os.Getenv("MUSTER_MCP_URL"), "muster's MCP endpoint (http(s)://host[:port]/mcp), where deprecate_toolchain asks agent-manager, as the person, who uses a toolchain. Needs --agent-manager-tools-prefix (MUSTER_MCP_URL)")
+	c.Flags().StringVar(&o.agentManagerTool, "agent-manager-tools-prefix", os.Getenv("AGENT_MANAGER_TOOLS_PREFIX"), "agent-manager's tool prefix in muster (x_agent-manager_). Empty: deprecate_toolchain is not served (AGENT_MANAGER_TOOLS_PREFIX)")
 	return c
 }
 
@@ -102,6 +107,16 @@ func serve(ctx context.Context, o serveOptions) error {
 			return err
 		}
 		svc.Toolchains = &toolchains.Catalog{Sources: svc.ToolchainSources, GitHub: gh, Registry: &registry.Client{}}
+		if (o.musterMCPURL == "") != (o.agentManagerTool == "") {
+			return errors.New("--muster-mcp-url and --agent-manager-tools-prefix go together: agent-manager is called through muster under its prefix")
+		}
+		if o.musterMCPURL != "" {
+			users, err := agentmanager.New(o.musterMCPURL, o.agentManagerTool, version)
+			if err != nil {
+				return err
+			}
+			svc.Toolchains.Users = users
+		}
 		if guard, err = server.NewGuard(ctx, server.AuthConfig{
 			Issuer: o.dexIssuer, JWKSURL: o.dexJWKSURL, CAFile: o.dexCAFile, Audiences: o.trustedAudiences, GrantApp: o.grantApp, Pinned: o.grantPinned, GitHub: gh,
 		}, slog.Default()); err != nil {
@@ -120,7 +135,7 @@ func serve(ctx context.Context, o serveOptions) error {
 
 	errc := make(chan error, 1)
 	go func() { errc <- srv.ListenAndServe() }()
-	slog.Info("serving", "listen", o.listen, "mcp", o.mcpPath, "version", version, "sources", svc.ToolchainSources != nil, "toolchains", svc.Toolchains != nil)
+	slog.Info("serving", "listen", o.listen, "mcp", o.mcpPath, "version", version, "sources", svc.ToolchainSources != nil, "toolchains", svc.Toolchains != nil, "deprecation", svc.Toolchains != nil && svc.Toolchains.Users != nil)
 	select {
 	case err := <-errc:
 		return err

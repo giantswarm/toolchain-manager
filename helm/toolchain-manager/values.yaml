@@ -76,6 +76,12 @@ crds:
   install: true
 
 muster:
+  # -- muster's MCP endpoint, where `deprecate_toolchain` asks agent-manager,
+  # as the person, which agents and Sessions use a toolchain. Rendered with
+  # `agentManagerToolsPrefix`; either empty serves no `deprecate_toolchain`.
+  mcpUrl: http://muster.agent-platform.svc.cluster.local:8090/mcp
+  # -- agent-manager's tool prefix in muster.
+  agentManagerToolsPrefix: x_agent-manager_
   mcpServer:
     # -- Register this server with muster: an `MCPServer` in the release
     # namespace, its tools `x_<name>_<tool>`. Needs `auth.dex.issuerURL`.

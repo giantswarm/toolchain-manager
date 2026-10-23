@@ -30,6 +30,8 @@ MCP server that manages toolchains for coding agents, their sources, package sea
 | github.grantApp | string | `"github"` | Provider App muster keeps the person's grant of the toolchain-manager's GitHub App as: muster attaches the person's token in `X-Muster-Grant-<app>` (an `aggregator.providerApps` entry of muster). |
 | github.appInstallURL | string | `""` | Where a repository's owner installs the App, https://github.com/apps/<slug>/installations/new; add_source names it. |
 | crds.install | bool | `true` | Install the ToolchainSource CRD; kept on uninstall, so removing the chart never removes an added source. |
+| muster.mcpUrl | string | `"http://muster.agent-platform.svc.cluster.local:8090/mcp"` | muster's MCP endpoint, where `deprecate_toolchain` asks agent-manager, as the person, which agents and Sessions use a toolchain. Rendered with `agentManagerToolsPrefix`; either empty serves no `deprecate_toolchain`. |
+| muster.agentManagerToolsPrefix | string | `"x_agent-manager_"` | agent-manager's tool prefix in muster. |
 | muster.mcpServer.enabled | bool | `false` | Register this server with muster: an `MCPServer` in the release namespace, its tools `x_<name>_<tool>`. Needs `auth.dex.issuerURL`. |
 | muster.mcpServer.name | string | `"toolchain-manager"` | MCPServer name, the tools' prefix. |
 | muster.mcpServer.displayName | string | `"Toolchain Manager"` | Name the Dev Portal shows for this server. |

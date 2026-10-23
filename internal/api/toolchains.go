@@ -15,9 +15,12 @@ const (
 	ToolDescribeToolchain = "describe_toolchain"
 	ToolCreateToolchain   = "create_toolchain"
 	ToolBuildStatus       = "toolchain_build_status"
+	ToolDeprecate         = "deprecate_toolchain"
 )
 
-const toolchainsInstructions = " list_toolchains shows the toolchains the offered sources have published, each with its versions and image; describe_toolchain shows one version's tools, Harnesses and pins as its image declares them. create_toolchain opens a pull request in a source, as you, that adds a toolchain from the Dockerfile add_packages and add_binary returned (or a hand-written one); its merge publishes the toolchain once the contract check passes. toolchain_build_status follows that pull request from queued through its checks and the release to published, or to failed with the failing job's log. All of them read and write the sources with your grant of the toolchain-manager's GitHub App in muster."
+const toolchainsInstructions = " list_toolchains shows the toolchains the installation offers, each with its published versions and every version's tools and Harnesses: agent-manager's start_session takes a toolchain at any version it lists, the newest when none is named; describe_toolchain shows one version's tools, Harnesses and pins as its image declares them. create_toolchain opens a pull request in a source, as you, that adds a toolchain from the Dockerfile add_packages and add_binary returned (or a hand-written one); its merge publishes the toolchain once the contract check passes. toolchain_build_status follows that pull request from queued through its checks and the release to published, or to failed with the failing job's log. All of them read and write the sources with your grant of the toolchain-manager's GitHub App in muster."
+
+const deprecateInstructions = " deprecate_toolchain takes a toolchain, or one version, out of the offered list, so no new Session starts on it; it first names the agents whose default toolchains name it and the Sessions that hold its digest, and its image stays, so those Sessions keep resuming."
 
 // addToolchainTools registers the toolchain tools.
 func addToolchainTools(s *mcpserver.MCPServer, c *toolchains.Catalog) {
@@ -31,7 +34,9 @@ func addToolchainTools(s *mcpserver.MCPServer, c *toolchains.Catalog) {
 	}
 
 	s.AddTool(mcp.NewTool(ToolListToolchains, append([]mcp.ToolOption{
-		mcp.WithDescription("Read-only. List the toolchains the installation offers: every toolchain an offered source (list_sources) has published, which its CI does only once it keeps the toolchain contract. Each with its source, its published versions (newest first), the newest one's image <registry>/<name>:X.Y.Z, when it was published and its release. A source your sign-in does not reach is listed under unreachable. Answers status grant_required while you have not granted the toolchain-manager's GitHub App in muster."),
+		mcp.WithDescription("Read-only. List the toolchains the installation offers: every toolchain an offered source (list_sources) has published, which its CI does only once it keeps the toolchain contract, and nobody deprecated. Each with its source, the newest offered version with its image <registry>/<name>:X.Y.Z, its published versions (newest first) and under published each of them with its image, when it was published, its release, the Harnesses it serves and its tools with their version commands. agent-manager's start_session takes a toolchain at any version listed here, the newest when none is named, and refuses any other. A source your sign-in does not reach is listed under unreachable. Answers status grant_required while you have not granted the toolchain-manager's GitHub App in muster."),
+		mcp.WithString("name", mcp.Description("Only this toolchain")),
+		mcp.WithBoolean("deprecated", mcp.Description("List the deprecated toolchains and versions too, marked deprecated (default false)")),
 		source,
 	}, hints...)...), t.list)
 
@@ -60,12 +65,30 @@ func addToolchainTools(s *mcpserver.MCPServer, c *toolchains.Catalog) {
 		mcp.WithBoolean("wait", mcp.Description("Wait for the state to move, up to 25 seconds (default false)")),
 		mcp.WithString("source", mcp.Description("The source: its name or repository (owner/name), as list_sources shows it; required when more than one is offered")),
 	}, hints...)...), t.status)
+
+	if c.Users != nil {
+		s.AddTool(mcp.NewTool(ToolDeprecate,
+			mcp.WithDescription("Writes to the installation. Deprecate a published toolchain, or one of its versions, as you: it leaves list_toolchains, so agent-manager starts no new Session on it, while its release and image stay, so a Session that holds its digest, suspended or not, keeps resuming on it. Without confirm nothing changes: the answer names who uses it, the agents whose default toolchains name it and the Sessions that hold its digest, as agent-manager shows them to you. With confirm it is deprecated; with restore a deprecation is taken back. Needs push access to the toolchain's source, or an installation owner. Answers status grant_required while you have not granted the toolchain-manager's GitHub App in muster."),
+			mcp.WithString("name", mcp.Required(), mcp.Description("The toolchain's name, as list_toolchains shows it")),
+			mcp.WithString("version", mcp.Description("One published version, vX.Y.Z; default the whole toolchain with every version")),
+			mcp.WithString("reason", mcp.Description("Why, for the people whose agents name it")),
+			mcp.WithBoolean("confirm", mcp.Description("Deprecate it; without, only name who uses it (default false)")),
+			mcp.WithBoolean("restore", mcp.Description("Take its deprecation back: it is offered again (default false)")),
+			source,
+			mcp.WithReadOnlyHintAnnotation(false),
+			mcp.WithDestructiveHintAnnotation(false),
+			mcp.WithIdempotentHintAnnotation(true),
+			mcp.WithOpenWorldHintAnnotation(true),
+		), t.deprecate)
+	}
 }
 
 type toolchainTools struct{ c *toolchains.Catalog }
 
 func (t *toolchainTools) list(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	res, err := t.c.List(ctx, req.GetString("source", ""))
+	res, err := t.c.List(ctx, toolchains.ListOptions{
+		Source: req.GetString("source", ""), Name: req.GetString("name", ""), Deprecated: req.GetBool("deprecated", false),
+	})
 	if err != nil {
 		return mcp.NewToolResultError(err.Error()), nil
 	}
@@ -90,6 +113,17 @@ func (t *toolchainTools) status(ctx context.Context, req mcp.CallToolRequest) (*
 
 func (t *toolchainTools) describe(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	res, err := t.c.Describe(ctx, req.GetString("name", ""), req.GetString("source", ""), req.GetString("version", ""))
+	if err != nil {
+		return mcp.NewToolResultError(err.Error()), nil
+	}
+	return mcp.NewToolResultStructured(res, res.Message), nil
+}
+
+func (t *toolchainTools) deprecate(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	res, err := t.c.Deprecate(ctx, toolchains.DeprecateInput{
+		Name: req.GetString("name", ""), Version: req.GetString("version", ""), Source: req.GetString("source", ""),
+		Reason: req.GetString("reason", ""), Confirm: req.GetBool("confirm", false), Restore: req.GetBool("restore", false),
+	})
 	if err != nil {
 		return mcp.NewToolResultError(err.Error()), nil
 	}

@@ -1,6 +1,7 @@
 // Package v1alpha1 is the toolchain-manager's API: a ToolchainSource is a
 // repository a person added as a source of toolchains, waiting for or holding
-// the installation owner's approval.
+// the installation owner's approval; a ToolchainDeprecation takes a toolchain,
+// or one of its versions, out of the offered list.
 //
 // +kubebuilder:object:generate=true
 // +groupName=toolchain-manager.giantswarm.io
@@ -17,7 +18,7 @@ var GroupVersion = schema.GroupVersion{Group: "toolchain-manager.giantswarm.io",
 
 // AddToScheme registers the API's types.
 func AddToScheme(s *runtime.Scheme) error {
-	s.AddKnownTypes(GroupVersion, &ToolchainSource{}, &ToolchainSourceList{})
+	s.AddKnownTypes(GroupVersion, &ToolchainSource{}, &ToolchainSourceList{}, &ToolchainDeprecation{}, &ToolchainDeprecationList{})
 	metav1.AddToGroupVersion(s, GroupVersion)
 	return nil
 }

@@ -1,6 +1,7 @@
 // Package identity carries the authenticated caller through a request: who
-// the OAuth layer validated (subject, email, groups) and the person's GitHub
-// App token muster attached to the call. The toolchain-manager's source tools
+// the OAuth layer validated (subject, email, groups), the person's Dex ID
+// token it validated, and the person's GitHub App token muster attached to
+// the call. The toolchain-manager's source tools
 // act for a caller only, so a context without an identity exists in tests
 // and in a server that runs without OAuth.
 package identity
@@ -34,6 +35,7 @@ func (id *Identity) String() string {
 type (
 	identityKey struct{}
 	grantKey    struct{}
+	idTokenKey  struct{}
 )
 
 // ContextWith returns ctx carrying id.
@@ -63,5 +65,22 @@ func ContextWithGrant(ctx context.Context, token string) context.Context {
 // attached one.
 func Grant(ctx context.Context) (string, bool) {
 	t, ok := ctx.Value(grantKey{}).(string)
+	return t, ok && t != ""
+}
+
+// ContextWithIDToken returns ctx carrying the person's validated Dex ID
+// token: what the manager forwards when it calls another platform server
+// through muster as the person.
+func ContextWithIDToken(ctx context.Context, token string) context.Context {
+	if token == "" {
+		return ctx
+	}
+	return context.WithValue(ctx, idTokenKey{}, token)
+}
+
+// IDToken returns the person's Dex ID token on this call, if the guard
+// validated one.
+func IDToken(ctx context.Context) (string, bool) {
+	t, ok := ctx.Value(idTokenKey{}).(string)
 	return t, ok && t != ""
 }
