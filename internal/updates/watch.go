@@ -272,7 +272,7 @@ func slackText(t Watched, st Status) string {
 		}
 		b.WriteString("\n")
 	}
-	fmt.Fprintf(&b, "The toolchain-manager's `update_toolchain` (name `%s`) opens the pull request with the new pins; a major update asks this channel, a patch or minor one merges once the toolchain contract check is green.", t.Toolchain)
+	fmt.Fprintf(&b, "The toolchain-manager's `update_toolchain` (name `%s`) opens the pull request with the new pins; it merges once the source's required reviews and checks, the toolchain contract check among them, pass.", t.Toolchain)
 	return b.String()
 }
 

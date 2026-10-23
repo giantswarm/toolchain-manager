@@ -23,7 +23,7 @@ func TestPostsWithTheServiceAccountToken(t *testing.T) {
 		body["path"] = r.URL.Path
 		got = append(got, body)
 		w.WriteHeader(http.StatusCreated)
-		_, _ = w.Write([]byte(`{"id":"rv1","channel":"C0123ABCDE","ts":"1.0"}`))
+		_, _ = w.Write([]byte(`{"channel":"C0123ABCDE","ts":"1.0"}`))
 	}))
 	defer srv.Close()
 	token := filepath.Join(t.TempDir(), "token")
@@ -32,20 +32,14 @@ func TestPostsWithTheServiceAccountToken(t *testing.T) {
 	}
 	c := &Client{URL: srv.URL + "/", TokenFile: token, HTTP: srv.Client()}
 
-	posted, err := c.Ask(context.Background(), Review{Team: "team-tools", Channel: "C0123ABCDE", Text: strings.Repeat("x", 4000),
-		PullRequests: []string{"https://github.com/acme/tools/pull/7"}, Approve: Tool{Tool: "x_toolchain-manager_approve_update", Arguments: map[string]any{"pull": 7}}})
-	if err != nil || posted.ID != "rv1" {
-		t.Fatalf("ask = %+v, %v", posted, err)
-	}
-	if err := c.Notice(context.Background(), "team-tools", "C0123ABCDE", "outdated", "https://github.com/acme/tools/releases/tag/lint/v0.1.0"); err != nil {
+	if err := c.Notice(context.Background(), "team-tools", "C0123ABCDE", strings.Repeat("x", 4000), "https://github.com/acme/tools/releases/tag/lint/v0.1.0"); err != nil {
 		t.Fatal(err)
 	}
-	if len(got) != 2 || got[0]["path"] != "/reviews" || got[1]["path"] != "/notices" ||
-		len([]rune(got[0]["text"].(string))) != textMax || got[0]["approve"].(map[string]any)["tool"] != "x_toolchain-manager_approve_update" {
+	if len(got) != 1 || got[0]["path"] != "/notices" || got[0]["team"] != "team-tools" || len([]rune(got[0]["text"].(string))) != textMax {
 		t.Errorf("posted = %v", got)
 	}
-	if _, ok := got[1]["approve"]; ok {
-		t.Errorf("a notice carries an approve: %v", got[1])
+	if _, ok := got[0]["approve"]; ok {
+		t.Errorf("a notice carries an approve: %v", got[0])
 	}
 
 	c.TokenFile = filepath.Join(t.TempDir(), "missing")

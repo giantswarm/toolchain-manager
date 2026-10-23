@@ -24,9 +24,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- `update_toolchain` arms auto-merge on every update, a major one too: it merges once the source's required reviews and checks pass, reviewed like any pull request of its source.
 - `list_toolchains` lists, beside the version names, each published version under `published` with its image, release, Harnesses and tools, leaves deprecated toolchains and versions out unless `deprecated` asks for them, and takes `name`; the newest version is the newest one offered.
 
 - A new source's release workflow tags each toolchain's image `X.Y.Z`, without the `v` of its `<name>/vX.Y.Z` release, as giantswarm/agent-toolchains does.
+
+### Removed
+
+- `approve_update`, the Slack ask of a major update through klaus-gateway's `POST /reviews` and the `--tools-prefix` flag: the manager never submits an approving review; a person or the owning team reviews an update on GitHub.
 
 
 [Unreleased]: https://github.com/giantswarm/toolchain-manager/tree/main

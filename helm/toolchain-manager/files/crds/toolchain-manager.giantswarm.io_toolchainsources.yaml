@@ -79,14 +79,12 @@ spec:
                   rule: self == oldSelf
               slackChannel:
                 description: |-
-                  SlackChannel is the owning team's channel that approves the source's
-                  updates: its ID (C0123ABCDE), which the asks are posted to, or its
-                  name.
+                  SlackChannel is the owning team's channel, told of the source's
+                  outdated toolchains: its ID (C0123ABCDE), which the notices are posted
+                  to, or its name.
                 type: string
               team:
-                description: |-
-                  Team is the owning GitHub team's slug, whose members approve a major
-                  update in SlackChannel.
+                description: Team is the owning GitHub team's slug.
                 type: string
               url:
                 description: URL is the repository's web address.

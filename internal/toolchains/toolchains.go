@@ -43,12 +43,6 @@ type Catalog struct {
 	// Either nil serves no updates.
 	Updates *updates.Watch
 	Updater *updates.Updater
-	// Reviews posts a major update's ask to the source's team; nil posts
-	// none, and the update waits for an approving review on GitHub.
-	Reviews ReviewAsker
-	// ApproveTool is approve_update as muster names it, which the ask's
-	// Approve calls as the clicking member.
-	ApproveTool string
 
 	// declarations caches what a released Dockerfile declares, by
 	// repository and tag: a release's tag does not move.

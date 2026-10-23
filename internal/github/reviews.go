@@ -3,20 +3,9 @@ package github
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
 	"strings"
 )
-
-// Approve submits an approving review of pull request number, as the
-// person.
-func (c *Client) Approve(ctx context.Context, token, repository string, number int, body string) error {
-	path, err := repoPath(repository)
-	if err != nil {
-		return err
-	}
-	return c.send(ctx, token, http.MethodPost, fmt.Sprintf("%s/pulls/%d/reviews", path, number), map[string]string{"event": "APPROVE", "body": body}, nil)
-}
 
 // EnableAutoMerge arms auto-merge on the pull request (its node ID), as the
 // person: GitHub squash-merges it once its required checks pass and its

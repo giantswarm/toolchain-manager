@@ -60,7 +60,6 @@ type serveOptions struct {
 	updatesConfigMap string
 	gatewayURL       string
 	gatewayTokenFile string
-	toolsPrefix      string
 }
 
 func newServeCommand() *cobra.Command {
@@ -92,9 +91,8 @@ func newServeCommand() *cobra.Command {
 	c.Flags().StringVar(&o.agentManagerTool, "agent-manager-tools-prefix", os.Getenv("AGENT_MANAGER_TOOLS_PREFIX"), "agent-manager's tool prefix in muster (x_agent-manager_). Empty: deprecate_toolchain is not served (AGENT_MANAGER_TOOLS_PREFIX)")
 	c.Flags().DurationVar(&o.updatesInterval, "updates-interval", 6*time.Hour, "how often the background job checks the pins of the toolchains the manager wrote; 0 serves no updates")
 	c.Flags().StringVar(&o.updatesConfigMap, "updates-configmap", "toolchain-manager-updates", "ConfigMap in --namespace the background job keeps the toolchains' pin state in")
-	c.Flags().StringVar(&o.gatewayURL, "klaus-gateway-url", "", "klaus-gateway's base URL, where the outdated notices and a major update's ask are posted to the source's team channel (POST /notices, /reviews). Needs --klaus-gateway-token-file and --tools-prefix; empty posts nothing")
+	c.Flags().StringVar(&o.gatewayURL, "klaus-gateway-url", "", "klaus-gateway's base URL, where the outdated notices are posted to the source's team channel (POST /notices). Needs --klaus-gateway-token-file; empty posts nothing")
 	c.Flags().StringVar(&o.gatewayTokenFile, "klaus-gateway-token-file", "/var/run/secrets/klaus-gateway/token", "the projected ServiceAccount token for klaus-gateway's audience")
-	c.Flags().StringVar(&o.toolsPrefix, "tools-prefix", "", "this server's tool prefix in muster (x_toolchain-manager_): a major update's Approve calls <prefix>approve_update")
 	return c
 }
 
@@ -126,9 +124,7 @@ func serve(ctx context.Context, o serveOptions) error {
 		}
 		svc.Toolchains = &toolchains.Catalog{Sources: svc.ToolchainSources, GitHub: gh, Registry: &registry.Client{}}
 		if o.updatesInterval > 0 {
-			if err := o.updates(ctx, svc, gh, kube); err != nil {
-				return err
-			}
+			o.updates(ctx, svc, gh, kube)
 		}
 		if (o.musterMCPURL == "") != (o.agentManagerTool == "") {
 			return errors.New("--muster-mcp-url and --agent-manager-tools-prefix go together: agent-manager is called through muster under its prefix")
@@ -159,7 +155,7 @@ func serve(ctx context.Context, o serveOptions) error {
 	errc := make(chan error, 1)
 	go func() { errc <- srv.ListenAndServe() }()
 	slog.Info("serving", "listen", o.listen, "mcp", o.mcpPath, "version", version, "sources", svc.ToolchainSources != nil, "toolchains", svc.Toolchains != nil, "deprecation", svc.Toolchains != nil && svc.Toolchains.Users != nil,
-		"updates", svc.Toolchains != nil && svc.Toolchains.Updater != nil, "slack", svc.Toolchains != nil && svc.Toolchains.Reviews != nil)
+		"updates", svc.Toolchains != nil && svc.Toolchains.Updater != nil, "slack", o.gatewayURL != "")
 	select {
 	case err := <-errc:
 		return err
@@ -227,21 +223,15 @@ func (o serveOptions) kube() (client.Client, error) {
 	return c, nil
 }
 
-// updates serves update_toolchain and approve_update and starts the
-// background job that marks outdated toolchains, posting into the sources'
-// team channels through klaus-gateway when it is named.
-func (o serveOptions) updates(ctx context.Context, svc *api.Service, gh *github.Client, kube client.Client) error {
+// updates serves update_toolchain and starts the background job that marks
+// outdated toolchains, posting into the sources' team channels through
+// klaus-gateway when it is named.
+func (o serveOptions) updates(ctx context.Context, svc *api.Service, gh *github.Client, kube client.Client) {
 	updater := &updates.Updater{Packages: svc.Sources, Writer: svc.Writer, Binaries: svc.Binaries, GitHub: gh, Token: os.Getenv("GITHUB_TOKEN")}
 	watch := &updates.Watch{Updater: updater, Client: kube, Namespace: o.namespace, Name: o.updatesConfigMap, Interval: o.updatesInterval}
 	svc.Toolchains.Updater, svc.Toolchains.Updates = updater, watch
 	if o.gatewayURL != "" {
-		if o.toolsPrefix == "" {
-			return errors.New("--klaus-gateway-url needs --tools-prefix: a major update's Approve calls approve_update through muster under it")
-		}
-		gw := &gateway.Client{URL: o.gatewayURL, TokenFile: o.gatewayTokenFile}
-		watch.Notifier, svc.Toolchains.Reviews = gw, gw
-		svc.Toolchains.ApproveTool = o.toolsPrefix + api.ToolApproveUpdate
+		watch.Notifier = &gateway.Client{URL: o.gatewayURL, TokenFile: o.gatewayTokenFile}
 	}
 	go watch.Run(ctx)
-	return nil
 }

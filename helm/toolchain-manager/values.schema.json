@@ -130,7 +130,7 @@
         },
         "klausGateway": {
             "type": "object",
-            "description": "klaus-gateway's team-review endpoint, where the outdated notices and a major update's ask with its Approve button are posted to a source's team channel. The manager calls it with its own projected ServiceAccount token, which klaus-gateway admits when its `reviews.allowedCallers` lists `system:serviceaccount:<namespace>:toolchain-manager`. Empty `url` posts nothing: the mark stays in the tools, and a major update waits for an approving review on GitHub.",
+            "description": "klaus-gateway's team-review endpoint, where the outdated notices are posted to a source's team channel. The manager calls it with its own projected ServiceAccount token, which klaus-gateway admits when its `reviews.allowedCallers` lists `system:serviceaccount:<namespace>:toolchain-manager`. Empty `url` posts nothing: the mark stays in the tools.",
             "additionalProperties": false,
             "properties": {
                 "audience": {
@@ -323,7 +323,7 @@
         },
         "sources": {
             "type": "array",
-            "description": "The toolchain sources the installation's configuration names, approved by being named here: each a GitHub repository (owner/name), the registry prefix its toolchains publish under, and the owning team: its GitHub team slug (`team`) and its Slack channel's ID (`slackChannel`, C0123ABCDE), where the outdated notices and a major update's ask go.",
+            "description": "The toolchain sources the installation's configuration names, approved by being named here: each a GitHub repository (owner/name), the registry prefix its toolchains publish under, and the owning team: its GitHub team slug (`team`) and its Slack channel's ID (`slackChannel`, C0123ABCDE), where the outdated notices go.",
             "items": {
                 "type": "object",
                 "additionalProperties": false,
@@ -352,7 +352,7 @@
             "properties": {
                 "interval": {
                     "type": "string",
-                    "description": "How often the background job checks the pins of the toolchains the manager wrote and marks the outdated ones (Go duration); 0 serves no `update_toolchain`, `approve_update` and no outdated mark."
+                    "description": "How often the background job checks the pins of the toolchains the manager wrote and marks the outdated ones (Go duration); 0 serves no `update_toolchain` and no outdated mark."
                 }
             }
         }

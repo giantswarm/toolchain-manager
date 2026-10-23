@@ -3,8 +3,8 @@
 // add, each a ToolchainSource in the manager's namespace that the
 // installation's owner approves once. A source is added with the grant of
 // the toolchain-manager's GitHub App on its repository, checked with the
-// person's own App token, and the Slack channel of the team that approves
-// its updates. An approved source's contract-checked toolchains are offered.
+// person's own App token, and the Slack channel of the team that owns it.
+// An approved source's contract-checked toolchains are offered.
 package sources
 
 import (
@@ -80,8 +80,8 @@ type Source struct {
 	URL          string `json:"url"`
 	Registry     string `json:"registry"`
 	SlackChannel string `json:"slackChannel,omitempty"`
-	// Team is the GitHub team (slug) that owns the source: its members
-	// approve a major update in SlackChannel.
+	// Team is the GitHub team (slug) that owns the source, told of its
+	// outdated toolchains in SlackChannel.
 	Team   string `json:"team,omitempty"`
 	Origin Origin `json:"origin"`
 	// Phase is Approved or, for an added source the owner has not approved
@@ -192,11 +192,10 @@ type AddInput struct {
 	// Registry is the image repository prefix the source's toolchains
 	// publish under.
 	Registry string `json:"registry"`
-	// SlackChannel is the owning team's channel that approves the source's
-	// updates.
+	// SlackChannel is the owning team's channel, told of the source's
+	// outdated toolchains.
 	SlackChannel string `json:"slackChannel"`
-	// Team is the owning GitHub team's slug, whose members approve a major
-	// update.
+	// Team is the owning GitHub team's slug.
 	Team string `json:"team"`
 }
 
@@ -469,7 +468,7 @@ func normalizeChannel(c string) (string, error) {
 	}
 	n := strings.TrimPrefix(strings.TrimSpace(c), "#")
 	if !channelPattern.MatchString(n) {
-		return "", fmt.Errorf("slackChannel %q: want the channel's ID (C0123ABCDE), or its name such as #team-toolchains, of the team that approves the source's updates", c)
+		return "", fmt.Errorf("slackChannel %q: want the channel's ID (C0123ABCDE), or its name such as #team-toolchains, of the team that owns the source", c)
 	}
 	return "#" + n, nil
 }
