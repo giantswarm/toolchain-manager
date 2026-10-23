@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -251,8 +252,9 @@ func (c *Catalog) deprecations(ctx context.Context) (deprecationSet, error) {
 // mark marks t and its versions deprecated as the set has them.
 func (s deprecationSet) mark(t Toolchain) Toolchain {
 	t.Deprecated = s[deprecationKey(t.Repository, t.Name, "")]
-	for i := range t.Versions {
-		t.Versions[i].Deprecated = s[deprecationKey(t.Repository, t.Name, t.Versions[i].Version)]
+	t.Published = slices.Clone(t.Published)
+	for i := range t.Published {
+		t.Published[i].Deprecated = s[deprecationKey(t.Repository, t.Name, t.Published[i].Version)]
 	}
 	return t
 }

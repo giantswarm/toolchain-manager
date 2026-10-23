@@ -60,9 +60,11 @@ type Toolchain struct {
 	Image       string     `json:"image"`
 	PublishedAt *time.Time `json:"publishedAt,omitempty"`
 	ReleaseURL  string     `json:"releaseURL,omitempty"`
-	// Versions are the published versions, newest first: the offered ones,
-	// and the deprecated ones too where asked.
-	Versions []Version `json:"versions"`
+	// Versions are the published versions' names, newest first: the offered
+	// ones, and the deprecated ones too where asked.
+	Versions []string `json:"versions"`
+	// Published are those versions with their images and tools.
+	Published []Version `json:"published"`
 	// Deprecated is set when the whole toolchain is deprecated.
 	Deprecated *Deprecated `json:"deprecated,omitempty"`
 
@@ -214,7 +216,7 @@ func (c *Catalog) declareAll(ctx context.Context, list []Toolchain) {
 	sem := make(chan struct{}, maxConcurrentReads)
 	var wg sync.WaitGroup
 	for i := range list {
-		for j := range list[i].Versions {
+		for j := range list[i].Published {
 			wg.Add(1)
 			sem <- struct{}{}
 			go func(t *Toolchain, v *Version) {
@@ -225,7 +227,7 @@ func (c *Catalog) declareAll(ctx context.Context, list []Toolchain) {
 					return
 				}
 				v.Harnesses, v.Tools = d.Harnesses, d.Tools
-			}(&list[i], &list[i].Versions[j])
+			}(&list[i], &list[i].Published[j])
 		}
 	}
 	wg.Wait()
@@ -403,8 +405,9 @@ func published(s sources.Source, releases []github.Release) []Toolchain {
 		}
 		sort.Slice(names, func(i, j int) bool { return newer(names[i], names[j]) })
 		for _, v := range names {
-			t.Versions = append(t.Versions, t.version(v))
+			t.Published = append(t.Published, t.version(v))
 		}
+		t.Versions = names
 		out = append(out, t.at(names[0]))
 	}
 	return out
@@ -437,7 +440,7 @@ func (t Toolchain) offered() (Toolchain, bool) {
 		return Toolchain{}, false
 	}
 	var versions []Version
-	for _, v := range t.Versions {
+	for _, v := range t.Published {
 		if v.Deprecated == nil {
 			versions = append(versions, v)
 		}
@@ -446,7 +449,8 @@ func (t Toolchain) offered() (Toolchain, bool) {
 		return Toolchain{}, false
 	}
 	t = t.at(versions[0].Version)
-	t.Versions = versions
+	t.Published = versions
+	t.Versions = t.versionNames()
 	return t, true
 }
 
@@ -455,7 +459,7 @@ func (t Toolchain) deprecated(version string) *Deprecated {
 	if t.Deprecated != nil {
 		return t.Deprecated
 	}
-	for _, v := range t.Versions {
+	for _, v := range t.Published {
 		if v.Version == version {
 			return v.Deprecated
 		}
@@ -464,8 +468,8 @@ func (t Toolchain) deprecated(version string) *Deprecated {
 }
 
 func (t Toolchain) versionNames() []string {
-	out := make([]string, len(t.Versions))
-	for i, v := range t.Versions {
+	out := make([]string, len(t.Published))
+	for i, v := range t.Published {
 		out[i] = v.Version
 	}
 	return out

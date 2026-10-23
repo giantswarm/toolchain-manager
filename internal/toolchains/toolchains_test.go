@@ -244,7 +244,10 @@ func TestListCarriesEveryVersionsTools(t *testing.T) {
 	}
 	acme, platformGo := res.Toolchains[0], res.Toolchains[1]
 	wantTools := []Tool{{"go", "go version && go env GOROOT"}, {"gofmt", "echo 'package p' | gofmt"}, {"say", `echo "hi" $HOME`}}
-	for _, v := range platformGo.Versions {
+	if !reflect.DeepEqual(platformGo.Versions, []string{"v0.10.0", "v0.9.0"}) {
+		t.Errorf("versions = %v, want the names, newest first", platformGo.Versions)
+	}
+	for _, v := range platformGo.Published {
 		if !reflect.DeepEqual(v.Tools, wantTools) || !reflect.DeepEqual(v.Harnesses, []string{"kagent", "claude", "codex", "omp"}) || v.Unreadable != "" {
 			t.Errorf("go %s = %+v, want its tools and Harnesses", v.Version, v)
 		}
@@ -252,11 +255,11 @@ func TestListCarriesEveryVersionsTools(t *testing.T) {
 			t.Errorf("go %s image = %s", v.Version, v.Image)
 		}
 	}
-	if v := acme.Versions[0]; v.Unreadable == "" || len(v.Tools) != 0 {
+	if v := acme.Published[0]; v.Unreadable == "" || len(v.Tools) != 0 {
 		t.Errorf("acme go %+v: its Dockerfile is not there, want it unreadable", v)
 	}
 	// A second list reads the released Dockerfiles from the cache.
-	if again, err := c.List(as("grant"), ListOptions{Name: "go"}); err != nil || !reflect.DeepEqual(again.Toolchains[1].Versions, platformGo.Versions) {
+	if again, err := c.List(as("grant"), ListOptions{Name: "go"}); err != nil || !reflect.DeepEqual(again.Toolchains[1].Published, platformGo.Published) {
 		t.Errorf("again = %+v, %v", again, err)
 	}
 }
@@ -309,14 +312,14 @@ func TestDeprecateNamesTheUsersFirstThenLeavesTheList(t *testing.T) {
 	if err != nil || !done.Changed || !done.Deprecated {
 		t.Fatalf("deprecate = %+v, %v", done, err)
 	}
-	if got := offered(); got.Version != "v0.9.0" || !reflect.DeepEqual(got.versionNames(), []string{"v0.9.0"}) {
-		t.Errorf("offered = %s %v, want v0.9.0 alone: the deprecated version left the list", got.Version, got.versionNames())
+	if got := offered(); got.Version != "v0.9.0" || !reflect.DeepEqual(got.Versions, []string{"v0.9.0"}) || len(got.Published) != 1 {
+		t.Errorf("offered = %s %v, want v0.9.0 alone: the deprecated version left the list", got.Version, got.Versions)
 	}
 	all, err := c.List(as("grant"), ListOptions{Name: "go", Source: "giantswarm/agent-toolchains", Deprecated: true})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if v := all.Toolchains[0].Versions[0]; v.Version != "v0.10.0" || v.Deprecated == nil || v.Deprecated.By != "alice@example.com" || v.Deprecated.Reason != in.Reason {
+	if v := all.Toolchains[0].Published[0]; v.Version != "v0.10.0" || v.Deprecated == nil || v.Deprecated.By != "alice@example.com" || v.Deprecated.Reason != in.Reason {
 		t.Errorf("listed with the deprecated = %+v", v)
 	}
 	described, err := c.Describe(as("grant"), "go", "giantswarm/agent-toolchains", "v0.10.0")
@@ -346,7 +349,7 @@ func TestDeprecateNamesTheUsersFirstThenLeavesTheList(t *testing.T) {
 			t.Errorf("restore %+v = %+v, %v", restore, res, err)
 		}
 	}
-	if got := offered(); got.Version != "v0.10.0" || len(got.Versions) != 2 {
+	if got := offered(); got.Version != "v0.10.0" || len(got.Versions) != 2 || len(got.Published) != 2 {
 		t.Errorf("restored = %+v", got)
 	}
 }

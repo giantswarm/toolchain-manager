@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- `list_toolchains` lists each published version with its image, release, Harnesses and tools, leaves deprecated toolchains and versions out unless `deprecated` asks for them, and takes `name`; the newest version is the newest one offered.
+- `list_toolchains` lists, beside the version names, each published version under `published` with its image, release, Harnesses and tools, leaves deprecated toolchains and versions out unless `deprecated` asks for them, and takes `name`; the newest version is the newest one offered.
 
 - A new source's release workflow tags each toolchain's image `X.Y.Z`, without the `v` of its `<name>/vX.Y.Z` release, as giantswarm/agent-toolchains does.
 
