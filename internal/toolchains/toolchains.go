@@ -23,6 +23,7 @@ import (
 	"github.com/giantswarm/toolchain-manager/internal/identity"
 	"github.com/giantswarm/toolchain-manager/internal/sources"
 	"github.com/giantswarm/toolchain-manager/internal/toolchain"
+	"github.com/giantswarm/toolchain-manager/internal/updates"
 )
 
 // Catalog reads the offered sources' published toolchains.
@@ -37,6 +38,17 @@ type Catalog struct {
 	// Users names the agents and Sessions that use a toolchain, asked as the
 	// person (agent-manager through muster); nil serves no deprecation.
 	Users UsageReader
+	// Updates keeps the outdated marks of the newest offered versions, which
+	// the catalog's reads hand it; Updater writes an update's Dockerfile.
+	// Either nil serves no updates.
+	Updates *updates.Watch
+	Updater *updates.Updater
+	// Reviews posts a major update's ask to the source's team; nil posts
+	// none, and the update waits for an approving review on GitHub.
+	Reviews ReviewAsker
+	// ApproveTool is approve_update as muster names it, which the ask's
+	// Approve calls as the clicking member.
+	ApproveTool string
 
 	// declarations caches what a released Dockerfile declares, by
 	// repository and tag: a release's tag does not move.
@@ -67,8 +79,13 @@ type Toolchain struct {
 	Published []Version `json:"published"`
 	// Deprecated is set when the whole toolchain is deprecated.
 	Deprecated *Deprecated `json:"deprecated,omitempty"`
+	// Outdated marks Version, the newest offered one, when a pin of it has
+	// a newer version: the background job's notification.
+	Outdated *updates.Outdated `json:"outdated,omitempty"`
 
 	registry string
+	team     string
+	channel  string
 	releases map[string]github.Release
 }
 
@@ -148,6 +165,9 @@ func (c *Catalog) List(ctx context.Context, opts ListOptions) (ListResult, error
 		res.Toolchains = offered
 	}
 	c.declareAll(ctx, res.Toolchains)
+	for i := range res.Toolchains {
+		c.watch(ctx, &res.Toolchains[i])
+	}
 	res.Message = fmt.Sprintf("%d toolchains from %d sources", len(res.Toolchains), res.reached)
 	if len(res.Unreachable) > 0 {
 		res.Message += fmt.Sprintf("; %d sources unreachable", len(res.Unreachable))
@@ -239,21 +259,44 @@ const maxConcurrentReads = 8
 // declaration is what the toolchain's Dockerfile at a released version
 // declares.
 func (c *Catalog) declaration(ctx context.Context, token, repository, name, version string) (Declaration, error) {
+	r, err := c.release(ctx, token, repository, name, version)
+	return r.Declaration, err
+}
+
+// released is what a released Dockerfile declares and, for one the manager
+// wrote, its spec.
+type released struct {
+	Declaration
+	spec *toolchain.Spec
+}
+
+// release reads the toolchain's Dockerfile at a released version, once per
+// tag.
+func (c *Catalog) release(ctx context.Context, token, repository, name, version string) (released, error) {
 	tag := name + "/" + version
 	key := repository + "@" + tag
-	if d, ok := c.declarations.Load(key); ok {
-		return d.(Declaration), nil
+	if r, ok := c.declarations.Load(key); ok {
+		return r.(released), nil
 	}
 	dockerfile, err := c.GitHub.File(ctx, token, repository, dockerfilePath(name), tag)
 	if err != nil {
-		return Declaration{}, fmt.Errorf("read %s at %s: %w", dockerfilePath(name), tag, err)
+		return released{}, fmt.Errorf("read %s at %s: %w", dockerfilePath(name), tag, err)
 	}
-	d := Declare(dockerfile)
-	if d.Tools == nil {
-		d.Tools = []Tool{}
+	r := c.remember(key, dockerfile)
+	return r, nil
+}
+
+// remember caches what a released Dockerfile declares under key.
+func (c *Catalog) remember(key string, dockerfile []byte) released {
+	r := released{Declaration: Declare(dockerfile)}
+	if r.Tools == nil {
+		r.Tools = []Tool{}
 	}
-	c.declarations.Store(key, d)
-	return d, nil
+	if spec, err := toolchain.Read(dockerfile); err == nil {
+		r.spec = &spec
+	}
+	c.declarations.Store(key, r)
+	return r
 }
 
 func dockerfilePath(name string) string { return "toolchains/" + name + "/Dockerfile" }
@@ -302,6 +345,8 @@ func (c *Catalog) Describe(ctx context.Context, name, ref, version string) (Desc
 		return DescribeResult{}, fmt.Errorf("read %s at %s in %s: %w", path, tag, t.Repository, err)
 	}
 	_, readErr := toolchain.Read(dockerfile)
+	c.remember(t.Repository+"@"+tag, dockerfile)
+	c.watch(ctx, &t)
 	d := &Description{
 		Toolchain:   t,
 		Declaration: Declare(dockerfile),
@@ -392,7 +437,7 @@ func published(s sources.Source, releases []github.Release) []Toolchain {
 		}
 		t, ok := byName[m[1]]
 		if !ok {
-			t = &Toolchain{Name: m[1], Source: s.Name, Repository: s.Repository, registry: s.Registry, releases: map[string]github.Release{}}
+			t = &Toolchain{Name: m[1], Source: s.Name, Repository: s.Repository, registry: s.Registry, team: s.Team, channel: s.SlackChannel, releases: map[string]github.Release{}}
 			byName[m[1]] = t
 		}
 		t.releases[m[2]] = r

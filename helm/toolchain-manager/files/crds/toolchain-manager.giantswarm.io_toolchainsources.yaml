@@ -80,7 +80,13 @@ spec:
               slackChannel:
                 description: |-
                   SlackChannel is the owning team's channel that approves the source's
-                  updates.
+                  updates: its ID (C0123ABCDE), which the asks are posted to, or its
+                  name.
+                type: string
+              team:
+                description: |-
+                  Team is the owning GitHub team's slug, whose members approve a major
+                  update in SlackChannel.
                 type: string
               url:
                 description: URL is the repository's web address.

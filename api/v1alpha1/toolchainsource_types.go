@@ -47,8 +47,13 @@ type ToolchainSourceSpec struct {
 	// publish under, <registry>/<name>.
 	Registry string `json:"registry"`
 	// SlackChannel is the owning team's channel that approves the source's
-	// updates.
+	// updates: its ID (C0123ABCDE), which the asks are posted to, or its
+	// name.
 	SlackChannel string `json:"slackChannel"`
+	// Team is the owning GitHub team's slug, whose members approve a major
+	// update in SlackChannel.
+	// +optional
+	Team string `json:"team,omitempty"`
 	// AddedBy is the person who added the source: their verified email,
 	// else their subject.
 	AddedBy string `json:"addedBy"`

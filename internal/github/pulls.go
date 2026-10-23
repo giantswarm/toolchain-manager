@@ -54,7 +54,9 @@ func (c *Client) PutFile(ctx context.Context, token, repository, branch, file, m
 
 // PullRequest is a pull request as the person's token reads it.
 type PullRequest struct {
-	Number         int        `json:"number"`
+	Number int `json:"number"`
+	// NodeID is the pull request's GraphQL ID, which auto-merge is armed on.
+	NodeID         string     `json:"node_id"`
 	HTMLURL        string     `json:"html_url"`
 	Title          string     `json:"title"`
 	State          string     `json:"state"`
@@ -64,6 +66,9 @@ type PullRequest struct {
 		Ref string `json:"ref"`
 		SHA string `json:"sha"`
 	} `json:"head"`
+	User struct {
+		Login string `json:"login"`
+	} `json:"user"`
 }
 
 // Merged reports whether the pull request was merged.

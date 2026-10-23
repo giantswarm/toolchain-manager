@@ -30,6 +30,9 @@ func NewMCPServer(svc *Service, version string) *mcpserver.MCPServer {
 	}
 	if svc.Toolchains != nil {
 		instr += toolchainsInstructions
+		if svc.Toolchains.Updater != nil {
+			instr += updateInstructions
+		}
 		if svc.Toolchains.Users != nil {
 			instr += deprecateInstructions
 		}
