@@ -205,8 +205,12 @@ func (c *Catalog) openUpdate(ctx context.Context, token string, src sources.Sour
 	if err := c.GitHub.SetBranch(ctx, token, src.Repository, branch, base, !exists); err != nil {
 		return nil, fmt.Errorf("branch %s: %w", branch, err)
 	}
+	sha, err := c.GitHub.FileSHA(ctx, token, src.Repository, path, branch)
+	if err != nil {
+		return nil, fmt.Errorf("read %s on %s: %w", path, branch, err)
+	}
 	title := updateTitle(t.Name, plan)
-	if err := c.GitHub.PutFile(ctx, token, src.Repository, branch, path, title, plan.Dockerfile); err != nil {
+	if err := c.GitHub.PutFile(ctx, token, src.Repository, branch, path, title, sha, plan.Dockerfile); err != nil {
 		return nil, fmt.Errorf("commit %s: %w", path, err)
 	}
 	pr, err := c.GitHub.CreatePull(ctx, token, src.Repository, branch, repo.DefaultBranch, title, updateBody(t, plan))

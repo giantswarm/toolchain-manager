@@ -82,13 +82,34 @@ func (f *fakeSource) serve(w http.ResponseWriter, r *http.Request) {
 	case r.Method == http.MethodGet && path == "":
 		write(fmt.Sprintf(`{"full_name":"acme/tools","default_branch":"main","permissions":{"push":%t}}`, f.push))
 	case r.Method == http.MethodGet && strings.HasPrefix(path, "/contents/"):
-		content, ok := f.files[r.URL.Query().Get("ref")+":"+strings.TrimPrefix(path, "/contents/")]
+		ref := r.URL.Query().Get("ref")
+		if b, ok := f.branches[ref]; ok && f.files[ref+":"+strings.TrimPrefix(path, "/contents/")] == "" {
+			ref = b // a branch made from main's commit reads main's files
+			if b == "base" {
+				ref = "main"
+			}
+		}
+		content, ok := f.files[ref+":"+strings.TrimPrefix(path, "/contents/")]
 		if !ok {
 			http.NotFound(w, r)
 			return
 		}
+		if r.Header.Get("Accept") != "application/vnd.github.raw+json" {
+			write(fmt.Sprintf(`{"sha":%q}`, blob(content)))
+			return
+		}
 		write(content)
 	case r.Method == http.MethodPut && strings.HasPrefix(path, "/contents/"):
+		file := strings.TrimPrefix(path, "/contents/")
+		had, exists := f.files["main:"+file]
+		if f.branches[in["branch"].(string)] != "base" {
+			had, exists = f.files[in["branch"].(string)+":"+file]
+		}
+		if exists && in["sha"] != blob(had) || !exists && in["sha"] != nil {
+			w.WriteHeader(http.StatusUnprocessableEntity)
+			write(`{"message":"\"sha\" wasn't supplied."}`)
+			return
+		}
 		b, _ := base64.StdEncoding.DecodeString(in["content"].(string))
 		f.files[in["branch"].(string)+":"+strings.TrimPrefix(path, "/contents/")] = string(b)
 		w.WriteHeader(http.StatusCreated)
@@ -150,6 +171,9 @@ func (f *fakeSource) serve(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 	}
 }
+
+// blob is a file's blob SHA as the fake answers it.
+func blob(content string) string { return fmt.Sprintf("blob-%x", len(content)) }
 
 func or(s, def string) string {
 	if s == "" {
