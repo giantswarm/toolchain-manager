@@ -66,7 +66,12 @@ func gitHubFor(t *testing.T) *github.Client {
 			_, _ = w.Write([]byte(`[{"tag_name":"helm/v0.1.0","published_at":"2026-10-23T08:00:00Z"},{"tag_name":"go/v0.1.0"}]`))
 		case "/repos/acme/pending/releases?per_page=100&page=1":
 			_, _ = w.Write([]byte(`[{"tag_name":"jq/v0.1.0"}]`))
-		case "/repos/giantswarm/agent-toolchains/contents/toolchains/go/Dockerfile?ref=go%2Fv0.9.0":
+		case "/repos/giantswarm/agent-toolchains?":
+			_, _ = w.Write([]byte(`{"full_name":"giantswarm/agent-toolchains","default_branch":"main","permissions":{"push":true}}`))
+		case "/repos/acme/tools?":
+			_, _ = w.Write([]byte(`{"full_name":"acme/tools","default_branch":"main","permissions":{"pull":true}}`))
+		case "/repos/giantswarm/agent-toolchains/contents/toolchains/go/Dockerfile?ref=go%2Fv0.9.0",
+			"/repos/giantswarm/agent-toolchains/contents/toolchains/go/Dockerfile?ref=go%2Fv0.10.0":
 			if r.Header.Get("Accept") != "application/vnd.github.raw+json" {
 				w.WriteHeader(http.StatusBadRequest)
 				return
@@ -120,7 +125,7 @@ func as(grant string) context.Context {
 
 func TestListShowsTheOfferedSourcesPublishedToolchains(t *testing.T) {
 	c := newCatalog(t, platform, sources.Configured{Repository: "acme/gone", Registry: "registry.acme.io/gone"})
-	res, err := c.List(as("grant"), "")
+	res, err := c.List(as("grant"), ListOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -138,8 +143,8 @@ func TestListShowsTheOfferedSourcesPublishedToolchains(t *testing.T) {
 		t.Errorf("toolchains = %+v, want %+v (the pending source's jq not offered)", got, want)
 	}
 	platformGo := res.Toolchains[1]
-	if !reflect.DeepEqual(platformGo.Versions, []string{"v0.10.0", "v0.9.0"}) {
-		t.Errorf("versions = %v, want v0.10.0, v0.9.0: no draft, no pre-release", platformGo.Versions)
+	if got := platformGo.versionNames(); !reflect.DeepEqual(got, []string{"v0.10.0", "v0.9.0"}) {
+		t.Errorf("versions = %v, want v0.10.0, v0.9.0: no draft, no pre-release", got)
 	}
 	if platformGo.PublishedAt == nil || platformGo.ReleaseURL == "" {
 		t.Errorf("go = %+v, want its release", platformGo)
@@ -148,14 +153,14 @@ func TestListShowsTheOfferedSourcesPublishedToolchains(t *testing.T) {
 		t.Errorf("unreachable = %+v, want acme/gone", res.Unreachable)
 	}
 
-	one, err := c.List(as("grant"), "acme/tools")
+	one, err := c.List(as("grant"), ListOptions{Source: "acme/tools"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(one.Toolchains) != 2 || one.Toolchains[0].Source != "acme-tools" {
 		t.Errorf("acme/tools = %+v", one.Toolchains)
 	}
-	if _, err := c.List(as("grant"), "acme-pending"); err == nil || !strings.Contains(err.Error(), "no offered source") {
+	if _, err := c.List(as("grant"), ListOptions{Source: "acme-pending"}); err == nil || !strings.Contains(err.Error(), "no offered source") {
 		t.Errorf("a pending source listed: %v", err)
 	}
 }
@@ -164,7 +169,7 @@ func TestListNeedsTheGrant(t *testing.T) {
 	c := newCatalog(t, platform)
 	for name, grant := range map[string]string{"no grant in muster": "", "grant refused": "revoked"} {
 		t.Run(name, func(t *testing.T) {
-			res, err := c.List(as(grant), "")
+			res, err := c.List(as(grant), ListOptions{})
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -173,7 +178,7 @@ func TestListNeedsTheGrant(t *testing.T) {
 			}
 		})
 	}
-	if _, err := c.List(context.Background(), ""); err == nil || !strings.Contains(err.Error(), "no caller") {
+	if _, err := c.List(context.Background(), ListOptions{}); err == nil || !strings.Contains(err.Error(), "no caller") {
 		t.Errorf("listed without a caller: %v", err)
 	}
 }
@@ -225,5 +230,143 @@ func TestDescribeReadsTheVersionsLabels(t *testing.T) {
 	none, err := c.Describe(as(""), "helm", "", "")
 	if err != nil || none.Status != sources.StatusGrantRequired {
 		t.Errorf("without the grant = %+v, %v", none, err)
+	}
+}
+
+func TestListCarriesEveryVersionsTools(t *testing.T) {
+	c := newCatalog(t, platform)
+	res, err := c.List(as("grant"), ListOptions{Name: "go"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(res.Toolchains) != 2 {
+		t.Fatalf("go = %+v, want the two sources' go", res.Toolchains)
+	}
+	acme, platformGo := res.Toolchains[0], res.Toolchains[1]
+	wantTools := []Tool{{"go", "go version && go env GOROOT"}, {"gofmt", "echo 'package p' | gofmt"}, {"say", `echo "hi" $HOME`}}
+	for _, v := range platformGo.Versions {
+		if !reflect.DeepEqual(v.Tools, wantTools) || !reflect.DeepEqual(v.Harnesses, []string{"kagent", "claude", "codex", "omp"}) || v.Unreadable != "" {
+			t.Errorf("go %s = %+v, want its tools and Harnesses", v.Version, v)
+		}
+		if v.Image != "gsoci.azurecr.io/giantswarm/agent-toolchains/go:"+strings.TrimPrefix(v.Version, "v") {
+			t.Errorf("go %s image = %s", v.Version, v.Image)
+		}
+	}
+	if v := acme.Versions[0]; v.Unreadable == "" || len(v.Tools) != 0 {
+		t.Errorf("acme go %+v: its Dockerfile is not there, want it unreadable", v)
+	}
+	// A second list reads the released Dockerfiles from the cache.
+	if again, err := c.List(as("grant"), ListOptions{Name: "go"}); err != nil || !reflect.DeepEqual(again.Toolchains[1].Versions, platformGo.Versions) {
+		t.Errorf("again = %+v, %v", again, err)
+	}
+}
+
+// usage is a UsageReader that answers one agent and one Session.
+type usage struct{ asked []string }
+
+func (u *usage) Users(_ context.Context, bearer, name, version string) (Usage, error) {
+	u.asked = append(u.asked, bearer+" "+name+"@"+version)
+	return Usage{
+		Agents:   []AgentUse{{Namespace: "org-acme", Name: "coder", Toolchain: name + "@" + version}},
+		Sessions: []SessionUse{{ID: "s1", Namespace: "org-acme", Agent: "coder", Image: "gsoci.azurecr.io/giantswarm/agent-toolchains/go@sha256:aa", State: "SUSPENDED"}},
+	}, nil
+}
+
+func TestDeprecateNamesTheUsersFirstThenLeavesTheList(t *testing.T) {
+	c := newCatalog(t, platform)
+	u := &usage{}
+	c.Users = u
+	ctx := identity.ContextWithIDToken(as("grant"), "dex")
+	in := DeprecateInput{Name: "go", Source: "giantswarm/agent-toolchains", Version: "0.10.0", Reason: "go 1.25 is out of support"}
+
+	preview, err := c.Deprecate(ctx, in)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if preview.Changed || preview.Deprecated || preview.Usage == nil || len(preview.Usage.Agents) != 1 || len(preview.Usage.Sessions) != 1 {
+		t.Errorf("preview = %+v, want the users and nothing changed", preview)
+	}
+	if !reflect.DeepEqual(u.asked, []string{"dex go@v0.10.0"}) {
+		t.Errorf("asked = %v, want go v0.10.0 as the person", u.asked)
+	}
+	if !strings.Contains(preview.Message, "1 agents") || !strings.Contains(preview.Message, "confirm") {
+		t.Errorf("message = %s", preview.Message)
+	}
+	offered := func() Toolchain {
+		t.Helper()
+		res, err := c.List(as("grant"), ListOptions{Name: "go", Source: "giantswarm/agent-toolchains"})
+		if err != nil || len(res.Toolchains) != 1 {
+			t.Fatalf("list = %+v, %v", res, err)
+		}
+		return res.Toolchains[0]
+	}
+	if got := offered().Version; got != "v0.10.0" {
+		t.Fatalf("a preview deprecated it: newest = %s", got)
+	}
+
+	in.Confirm = true
+	done, err := c.Deprecate(ctx, in)
+	if err != nil || !done.Changed || !done.Deprecated {
+		t.Fatalf("deprecate = %+v, %v", done, err)
+	}
+	if got := offered(); got.Version != "v0.9.0" || !reflect.DeepEqual(got.versionNames(), []string{"v0.9.0"}) {
+		t.Errorf("offered = %s %v, want v0.9.0 alone: the deprecated version left the list", got.Version, got.versionNames())
+	}
+	all, err := c.List(as("grant"), ListOptions{Name: "go", Source: "giantswarm/agent-toolchains", Deprecated: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if v := all.Toolchains[0].Versions[0]; v.Version != "v0.10.0" || v.Deprecated == nil || v.Deprecated.By != "alice@example.com" || v.Deprecated.Reason != in.Reason {
+		t.Errorf("listed with the deprecated = %+v", v)
+	}
+	described, err := c.Describe(as("grant"), "go", "giantswarm/agent-toolchains", "v0.10.0")
+	if err != nil || !strings.Contains(described.Message, "deprecated by alice@example.com") {
+		t.Errorf("describe = %+v, %v", described, err)
+	}
+	if again, err := c.Deprecate(ctx, in); err != nil || again.Changed || !again.Deprecated {
+		t.Errorf("deprecated twice = %+v, %v", again, err)
+	}
+
+	whole, err := c.Deprecate(ctx, DeprecateInput{Name: "go", Source: "giantswarm/agent-toolchains", Confirm: true})
+	if err != nil || !whole.Changed {
+		t.Fatalf("whole = %+v, %v", whole, err)
+	}
+	if res, _ := c.List(as("grant"), ListOptions{Name: "go"}); len(res.Toolchains) != 1 || res.Toolchains[0].Source != "acme-tools" {
+		t.Errorf("list = %+v, want only acme's go", res.Toolchains)
+	}
+	if _, err := c.Deprecate(ctx, DeprecateInput{Name: "go", Source: "giantswarm/agent-toolchains", Version: "v0.9.0", Confirm: true}); err == nil || !strings.Contains(err.Error(), "every version already") {
+		t.Errorf("a version of a deprecated toolchain: %v", err)
+	}
+
+	for _, restore := range []DeprecateInput{
+		{Name: "go", Source: "giantswarm/agent-toolchains", Restore: true},
+		{Name: "go", Source: "giantswarm/agent-toolchains", Version: "v0.10.0", Restore: true},
+	} {
+		if res, err := c.Deprecate(ctx, restore); err != nil || !res.Changed || res.Deprecated {
+			t.Errorf("restore %+v = %+v, %v", restore, res, err)
+		}
+	}
+	if got := offered(); got.Version != "v0.10.0" || len(got.Versions) != 2 {
+		t.Errorf("restored = %+v", got)
+	}
+}
+
+func TestDeprecateNeedsPushOrAnOwner(t *testing.T) {
+	c := newCatalog(t, platform)
+	c.Users = &usage{}
+	in := DeprecateInput{Name: "helm", Confirm: true}
+	if _, err := c.Deprecate(as("grant"), in); err == nil || !strings.Contains(err.Error(), "only a person who can push to acme/tools") {
+		t.Errorf("deprecated without push: %v", err)
+	}
+	c.Sources.Owners = sources.Owners{Emails: []string{"alice@example.com"}}
+	if res, err := c.Deprecate(identity.ContextWithIDToken(as("grant"), "dex"), in); err != nil || !res.Changed {
+		t.Errorf("an owner = %+v, %v", res, err)
+	}
+	if _, err := c.Deprecate(as("grant"), DeprecateInput{Name: "helm", Version: "v9.9.9"}); err == nil || !strings.Contains(err.Error(), "no published version v9.9.9") {
+		t.Errorf("an unpublished version: %v", err)
+	}
+	c.Users = nil
+	if _, err := c.Deprecate(as("grant"), in); err == nil || !strings.Contains(err.Error(), "agent-manager") {
+		t.Errorf("without agent-manager: %v", err)
 	}
 }

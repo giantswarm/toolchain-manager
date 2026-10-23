@@ -86,12 +86,15 @@ func TestGuard(t *testing.T) {
 	type seen struct {
 		caller, grant string
 		header        bool
+		idToken       bool
 	}
 	var got seen
+	var bearer string
 	h := g.Protect(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
 		id, _ := identity.FromContext(r.Context())
 		grant, _ := identity.Grant(r.Context())
-		got = seen{caller: id.String(), grant: grant, header: r.Header.Get("X-Muster-Grant-github") != ""}
+		token, _ := identity.IDToken(r.Context())
+		got = seen{caller: id.String(), grant: grant, header: r.Header.Get("X-Muster-Grant-github") != "", idToken: token != "" && token == bearer}
 	}))
 
 	for name, tc := range map[string]struct {
@@ -102,12 +105,12 @@ func TestGuard(t *testing.T) {
 		"no bearer":        {code: http.StatusUnauthorized},
 		"not a token":      {bearer: "nonsense", code: http.StatusUnauthorized},
 		"foreign audience": {bearer: dex.token(t, "someone-else"), code: http.StatusUnauthorized},
-		"no grant":         {bearer: dex.token(t, "muster"), code: http.StatusOK, want: seen{caller: "admin@lab.local"}},
-		"verified grant":   {bearer: dex.token(t, "muster"), grant: "good", code: http.StatusOK, want: seen{caller: "admin@lab.local", grant: "good"}},
-		"refused grant":    {bearer: dex.token(t, "muster"), grant: "revoked", code: http.StatusOK, want: seen{caller: "admin@lab.local"}},
+		"no grant":         {bearer: dex.token(t, "muster"), code: http.StatusOK, want: seen{caller: "admin@lab.local", idToken: true}},
+		"verified grant":   {bearer: dex.token(t, "muster"), grant: "good", code: http.StatusOK, want: seen{caller: "admin@lab.local", grant: "good", idToken: true}},
+		"refused grant":    {bearer: dex.token(t, "muster"), grant: "revoked", code: http.StatusOK, want: seen{caller: "admin@lab.local", idToken: true}},
 	} {
 		t.Run(name, func(t *testing.T) {
-			got = seen{}
+			got, bearer = seen{}, tc.bearer
 			r := httptest.NewRequest(http.MethodPost, "/mcp", nil)
 			if tc.bearer != "" {
 				r.Header.Set("Authorization", "Bearer "+tc.bearer)

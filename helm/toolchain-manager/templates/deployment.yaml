@@ -55,6 +55,10 @@ spec:
             {{- with .Values.github.appInstallURL }}
             - --github-app-install-url={{ . }}
             {{- end }}
+            {{- if and .Values.muster.mcpUrl .Values.muster.agentManagerToolsPrefix }}
+            - --muster-mcp-url={{ .Values.muster.mcpUrl }}
+            - --agent-manager-tools-prefix={{ .Values.muster.agentManagerToolsPrefix }}
+            {{- end }}
             {{- end }}
           env:
             - name: POD_NAMESPACE

@@ -142,6 +142,10 @@
             "type": "object",
             "additionalProperties": false,
             "properties": {
+                "agentManagerToolsPrefix": {
+                    "type": "string",
+                    "description": "agent-manager's tool prefix in muster."
+                },
                 "mcpServer": {
                     "type": "object",
                     "additionalProperties": false,
@@ -183,6 +187,10 @@
                             "description": "Tool call timeout in seconds; 0 keeps muster's default."
                         }
                     }
+                },
+                "mcpUrl": {
+                    "type": "string",
+                    "description": "muster's MCP endpoint, where `deprecate_toolchain` asks agent-manager, as the person, which agents and Sessions use a toolchain. Rendered with `agentManagerToolsPrefix`; either empty serves no `deprecate_toolchain`."
                 }
             }
         },

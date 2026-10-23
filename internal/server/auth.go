@@ -132,7 +132,7 @@ func (g *Guard) Protect(next http.Handler) http.Handler {
 			g.refuse(w, r, err)
 			return
 		}
-		ctx = identity.ContextWith(ctx, id)
+		ctx = identity.ContextWithIDToken(identity.ContextWith(ctx, id), idToken)
 		if grant != "" {
 			switch err := g.verifyGrant(ctx, grant); {
 			case errors.Is(err, github.ErrRefused):
