@@ -186,7 +186,9 @@ func (w *Watch) Round(ctx context.Context) {
 		todo = append(todo, *r)
 	}
 	w.mu.Unlock()
-	sort.Slice(todo, func(i, j int) bool { return Key(todo[i].Repository, todo[i].Toolchain) < Key(todo[j].Repository, todo[j].Toolchain) })
+	sort.Slice(todo, func(i, j int) bool {
+		return Key(todo[i].Repository, todo[i].Toolchain) < Key(todo[j].Repository, todo[j].Toolchain)
+	})
 
 	for _, r := range todo {
 		if r.Spec == nil {

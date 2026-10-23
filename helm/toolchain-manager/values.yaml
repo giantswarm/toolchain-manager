@@ -59,6 +59,8 @@ owners:
 sources:
   - repository: giantswarm/agent-toolchains
     registry: gsoci.azurecr.io/giantswarm/agent-toolchains
+    slackChannel: ""
+    team: ""
 
 github:
   # -- GitHub API.

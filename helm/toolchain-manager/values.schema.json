@@ -72,31 +72,6 @@
         "clusterID": {
             "type": "string"
         },
-        "updates": {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-                "interval": {
-                    "type": "string",
-                    "description": "How often the background job checks the pins of the toolchains the manager wrote and marks the outdated ones (Go duration); 0 serves no `update_toolchain`, `approve_update` and no outdated mark."
-                }
-            }
-        },
-        "klausGateway": {
-            "type": "object",
-            "additionalProperties": false,
-            "description": "klaus-gateway's team-review endpoint, where the outdated notices and a major update's ask with its Approve button are posted to a source's team channel. The manager calls it with its own projected ServiceAccount token, which klaus-gateway admits when its `reviews.allowedCallers` lists `system:serviceaccount:<namespace>:toolchain-manager`. Empty `url` posts nothing: the mark stays in the tools, and a major update waits for an approving review on GitHub.",
-            "properties": {
-                "url": {
-                    "type": "string",
-                    "description": "Base URL, such as http://klaus-gateway.klaus-gateway.svc.cluster.local:8080."
-                },
-                "audience": {
-                    "type": "string",
-                    "description": "Audience of the projected token, klaus-gateway's `reviews.audience`."
-                }
-            }
-        },
         "crds": {
             "type": "object",
             "additionalProperties": false,
@@ -150,6 +125,21 @@
                 "tag": {
                     "type": "string",
                     "description": "Image tag; empty is the chart's appVersion."
+                }
+            }
+        },
+        "klausGateway": {
+            "type": "object",
+            "description": "klaus-gateway's team-review endpoint, where the outdated notices and a major update's ask with its Approve button are posted to a source's team channel. The manager calls it with its own projected ServiceAccount token, which klaus-gateway admits when its `reviews.allowedCallers` lists `system:serviceaccount:<namespace>:toolchain-manager`. Empty `url` posts nothing: the mark stays in the tools, and a major update waits for an approving review on GitHub.",
+            "additionalProperties": false,
+            "properties": {
+                "audience": {
+                    "type": "string",
+                    "description": "Audience of the projected token, klaus-gateway's `reviews.audience`."
+                },
+                "url": {
+                    "type": "string",
+                    "description": "Base URL, such as http://klaus-gateway.klaus-gateway.svc.cluster.local:8080."
                 }
             }
         },
@@ -355,6 +345,16 @@
         },
         "subscriptionID": {
             "type": "string"
+        },
+        "updates": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "interval": {
+                    "type": "string",
+                    "description": "How often the background job checks the pins of the toolchains the manager wrote and marks the outdated ones (Go duration); 0 serves no `update_toolchain`, `approve_update` and no outdated mark."
+                }
+            }
         }
     }
 }
