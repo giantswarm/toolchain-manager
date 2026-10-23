@@ -59,6 +59,12 @@ spec:
             - --muster-mcp-url={{ .Values.muster.mcpUrl }}
             - --agent-manager-tools-prefix={{ .Values.muster.agentManagerToolsPrefix }}
             {{- end }}
+            - --updates-interval={{ .Values.updates.interval }}
+            {{- if .Values.klausGateway.url }}
+            - --klaus-gateway-url={{ .Values.klausGateway.url }}
+            - --klaus-gateway-token-file=/var/run/secrets/klaus-gateway/token
+            - --tools-prefix=x_{{ .Values.muster.mcpServer.name }}_
+            {{- end }}
             {{- end }}
           env:
             - name: POD_NAMESPACE
@@ -91,6 +97,11 @@ spec:
               mountPath: /etc/toolchain-manager/dex-ca
               readOnly: true
             {{- end }}
+            {{- if .Values.klausGateway.url }}
+            - name: klaus-gateway-token
+              mountPath: /var/run/secrets/klaus-gateway
+              readOnly: true
+            {{- end }}
           {{- end }}
       {{- if eq (include "toolchain-manager.auth" .) "true" }}
       volumes:
@@ -101,5 +112,15 @@ spec:
         - name: dex-ca
           secret:
             secretName: {{ . }}
+        {{- end }}
+        {{- if .Values.klausGateway.url }}
+        {{- /* The manager's own identity toward klaus-gateway, verified there by TokenReview. */}}
+        - name: klaus-gateway-token
+          projected:
+            sources:
+              - serviceAccountToken:
+                  audience: {{ .Values.klausGateway.audience }}
+                  expirationSeconds: 600
+                  path: token
         {{- end }}
       {{- end }}

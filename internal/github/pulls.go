@@ -39,22 +39,42 @@ func (c *Client) SetBranch(ctx context.Context, token, repository, branch, sha s
 	return c.send(ctx, token, http.MethodPatch, path+"/git/refs/heads/"+escapePath(branch), map[string]any{"sha": sha, "force": true}, nil)
 }
 
-// PutFile commits content as file on branch with message, as the person.
-func (c *Client) PutFile(ctx context.Context, token, repository, branch, file, message string, content []byte) error {
+// PutFile commits content as file on branch with message, as the person:
+// a new file, or with sha (the blob it replaces, FileSHA) an existing one.
+func (c *Client) PutFile(ctx context.Context, token, repository, branch, file, message, sha string, content []byte) error {
 	path, err := repoPath(repository)
 	if err != nil {
 		return err
 	}
-	return c.send(ctx, token, http.MethodPut, path+"/contents/"+escapePath(file), map[string]string{
+	in := map[string]string{
 		"message": message,
 		"content": base64.StdEncoding.EncodeToString(content),
 		"branch":  branch,
-	}, nil)
+	}
+	if sha != "" {
+		in["sha"] = sha
+	}
+	return c.send(ctx, token, http.MethodPut, path+"/contents/"+escapePath(file), in, nil)
+}
+
+// FileSHA is the blob SHA of file at ref: ErrNotFound when there is none.
+func (c *Client) FileSHA(ctx context.Context, token, repository, file, ref string) (string, error) {
+	path, err := repoPath(repository)
+	if err != nil {
+		return "", err
+	}
+	var f struct {
+		SHA string `json:"sha"`
+	}
+	err = c.get(ctx, token, path+"/contents/"+escapePath(file)+"?ref="+url.QueryEscape(ref), &f)
+	return f.SHA, err
 }
 
 // PullRequest is a pull request as the person's token reads it.
 type PullRequest struct {
-	Number         int        `json:"number"`
+	Number int `json:"number"`
+	// NodeID is the pull request's GraphQL ID, which auto-merge is armed on.
+	NodeID         string     `json:"node_id"`
 	HTMLURL        string     `json:"html_url"`
 	Title          string     `json:"title"`
 	State          string     `json:"state"`
@@ -64,6 +84,9 @@ type PullRequest struct {
 		Ref string `json:"ref"`
 		SHA string `json:"sha"`
 	} `json:"head"`
+	User struct {
+		Login string `json:"login"`
+	} `json:"user"`
 }
 
 // Merged reports whether the pull request was merged.

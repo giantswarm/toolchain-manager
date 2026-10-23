@@ -52,6 +52,7 @@ type Configured struct {
 	Repository   string `json:"repository"`
 	Registry     string `json:"registry"`
 	SlackChannel string `json:"slackChannel,omitempty"`
+	Team         string `json:"team,omitempty"`
 }
 
 // Owners are the installation's owners, who approve a new source: a caller
@@ -79,7 +80,10 @@ type Source struct {
 	URL          string `json:"url"`
 	Registry     string `json:"registry"`
 	SlackChannel string `json:"slackChannel,omitempty"`
-	Origin       Origin `json:"origin"`
+	// Team is the GitHub team (slug) that owns the source: its members
+	// approve a major update in SlackChannel.
+	Team   string `json:"team,omitempty"`
+	Origin Origin `json:"origin"`
 	// Phase is Approved or, for an added source the owner has not approved
 	// yet, Pending.
 	Phase v1alpha1.Phase `json:"phase"`
@@ -149,7 +153,7 @@ func (m *Manager) list(ctx context.Context) ([]Source, error) {
 		repo, _ := NormalizeRepository(c.Repository)
 		out = append(out, Source{
 			Name: Name(repo), Repository: repo, URL: "https://github.com/" + repo, Registry: c.Registry,
-			SlackChannel: c.SlackChannel, Origin: OriginConfiguration, Phase: v1alpha1.PhaseApproved, Offered: true,
+			SlackChannel: c.SlackChannel, Team: c.Team, Origin: OriginConfiguration, Phase: v1alpha1.PhaseApproved, Offered: true,
 		})
 	}
 	var list v1alpha1.ToolchainSourceList
@@ -191,6 +195,9 @@ type AddInput struct {
 	// SlackChannel is the owning team's channel that approves the source's
 	// updates.
 	SlackChannel string `json:"slackChannel"`
+	// Team is the owning GitHub team's slug, whose members approve a major
+	// update.
+	Team string `json:"team"`
 }
 
 // AddResult is add_source's answer: the source, or what the person does
@@ -227,6 +234,10 @@ func (m *Manager) Add(ctx context.Context, in AddInput) (AddResult, error) {
 	if err != nil {
 		return AddResult{}, err
 	}
+	team := strings.TrimSpace(in.Team)
+	if team != "" && !teamPattern.MatchString(team) {
+		return AddResult{}, fmt.Errorf("team %q: want the GitHub team's slug, such as team-toolchains", in.Team)
+	}
 	existing, err := m.list(ctx)
 	if err != nil {
 		return AddResult{}, err
@@ -261,7 +272,7 @@ func (m *Manager) Add(ctx context.Context, in AddInput) (AddResult, error) {
 	src := &v1alpha1.ToolchainSource{
 		ObjectMeta: metav1.ObjectMeta{Name: Name(r.FullName), Namespace: m.Namespace},
 		Spec: v1alpha1.ToolchainSourceSpec{
-			Repository: r.FullName, URL: r.HTMLURL, Registry: in.Registry, SlackChannel: channel,
+			Repository: r.FullName, URL: r.HTMLURL, Registry: in.Registry, SlackChannel: channel, Team: team,
 			AddedBy: id.String(), AddedBySubject: id.Subject,
 		},
 	}
@@ -392,7 +403,7 @@ func view(s *v1alpha1.ToolchainSource) Source {
 	}
 	out := Source{
 		Name: s.Name, Repository: s.Spec.Repository, URL: s.Spec.URL, Registry: s.Spec.Registry,
-		SlackChannel: s.Spec.SlackChannel, Origin: OriginAdded, Phase: phase, Offered: phase == v1alpha1.PhaseApproved,
+		SlackChannel: s.Spec.SlackChannel, Team: s.Spec.Team, Origin: OriginAdded, Phase: phase, Offered: phase == v1alpha1.PhaseApproved,
 		AddedBy: s.Spec.AddedBy, ApprovedBy: s.Status.ApprovedBy,
 	}
 	if !s.CreationTimestamp.IsZero() {
@@ -410,6 +421,8 @@ var (
 	repositoryPattern = regexp.MustCompile(`^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$`)
 	registryPattern   = regexp.MustCompile(`^[a-z0-9.-]+(:[0-9]+)?(/[a-z0-9._-]+)*$`)
 	channelPattern    = regexp.MustCompile(`^[a-z0-9_-]{1,80}$`)
+	channelIDPattern  = regexp.MustCompile(`^[CG][A-Z0-9]{8,}$`)
+	teamPattern       = regexp.MustCompile(`^[a-z0-9][a-z0-9_-]{0,99}$`)
 	nameInvalid       = regexp.MustCompile(`[^a-z0-9]+`)
 )
 
@@ -447,11 +460,16 @@ func validateRegistry(r string) error {
 	return nil
 }
 
-// normalizeChannel takes a Slack channel name with or without its #.
+// normalizeChannel takes a Slack channel's ID, kept as it is, or its name
+// with or without its #. The team's notices and asks are posted to an ID
+// only.
 func normalizeChannel(c string) (string, error) {
+	if id := strings.TrimSpace(c); channelIDPattern.MatchString(id) {
+		return id, nil
+	}
 	n := strings.TrimPrefix(strings.TrimSpace(c), "#")
 	if !channelPattern.MatchString(n) {
-		return "", fmt.Errorf("slackChannel %q: want the channel's name, such as #team-toolchains, of the team that approves the source's updates", c)
+		return "", fmt.Errorf("slackChannel %q: want the channel's ID (C0123ABCDE), or its name such as #team-toolchains, of the team that approves the source's updates", c)
 	}
 	return "#" + n, nil
 }

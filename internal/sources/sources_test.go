@@ -174,6 +174,7 @@ func TestAddValidatesItsInput(t *testing.T) {
 		"registry no host": {Repository: "acme/tools", Registry: "toolchains", SlackChannel: "x"},
 		"no channel":       {Repository: "acme/tools", Registry: "registry.acme.io/toolchains"},
 		"bad channel":      {Repository: "acme/tools", Registry: "registry.acme.io/toolchains", SlackChannel: "#Team Tools"},
+		"bad team":         {Repository: "acme/tools", Registry: "registry.acme.io/toolchains", SlackChannel: "x", Team: "Team Tools"},
 	} {
 		if _, err := m.Add(as(alice, "grant"), in); err == nil {
 			t.Errorf("%s: added", name)
@@ -263,5 +264,19 @@ func TestName(t *testing.T) {
 		if got := Name(in); got != want {
 			t.Errorf("Name(%q) = %q, want %q", in, got, want)
 		}
+	}
+}
+
+func TestAddKeepsTheOwningTeamAndTheChannelsID(t *testing.T) {
+	m := newManager(t)
+	in := add
+	in.SlackChannel, in.Team = "C0123ABCDE", "team-tools"
+	res, err := m.Add(as(alice, "grant"), in)
+	if err != nil || res.Source == nil {
+		t.Fatalf("add = %+v, %v", res, err)
+	}
+	list, err := m.List(as(alice, ""))
+	if err != nil || len(list) != 2 || list[1].SlackChannel != "C0123ABCDE" || list[1].Team != "team-tools" {
+		t.Errorf("list = %+v, %v", list, err)
 	}
 }

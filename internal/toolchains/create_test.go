@@ -31,6 +31,8 @@ type fakeSource struct {
 	statuses map[string]string // sha → statuses JSON
 	tags     string            // matching-refs JSON
 	releases map[string]string // tag → release JSON
+	list     string            // releases JSON
+	login    string            // the token's GitHub login
 	calls    []string
 }
 
@@ -44,6 +46,8 @@ func newFakeSource(t *testing.T) (*fakeSource, *github.Client) {
 		statuses: map[string]string{},
 		tags:     "[]",
 		releases: map[string]string{},
+		list:     "[]",
+		login:    "alice-gh",
 	}
 	srv := httptest.NewServer(http.HandlerFunc(f.serve))
 	t.Cleanup(srv.Close)
@@ -62,17 +66,50 @@ func (f *fakeSource) serve(w http.ResponseWriter, r *http.Request) {
 	var in map[string]any
 	_ = json.NewDecoder(r.Body).Decode(&in)
 	write := func(v string) { _, _ = w.Write([]byte(v)) }
+	if b, err := json.Marshal(in); err == nil && in != nil {
+		f.calls[len(f.calls)-1] += " " + string(b)
+	}
 	switch {
+	case r.Method == http.MethodGet && path == "/user":
+		write(fmt.Sprintf(`{"login":%q}`, f.login))
+	case r.Method == http.MethodPost && path == "/graphql":
+		write(`{"data":{"enablePullRequestAutoMerge":{"clientMutationId":null}}}`)
+	case r.Method == http.MethodPost && strings.HasSuffix(path, "/reviews"):
+		w.WriteHeader(http.StatusOK)
+		write(`{}`)
+	case r.Method == http.MethodGet && path == "/releases":
+		write(f.list)
 	case r.Method == http.MethodGet && path == "":
 		write(fmt.Sprintf(`{"full_name":"acme/tools","default_branch":"main","permissions":{"push":%t}}`, f.push))
 	case r.Method == http.MethodGet && strings.HasPrefix(path, "/contents/"):
-		content, ok := f.files[r.URL.Query().Get("ref")+":"+strings.TrimPrefix(path, "/contents/")]
+		ref := r.URL.Query().Get("ref")
+		if b, ok := f.branches[ref]; ok && f.files[ref+":"+strings.TrimPrefix(path, "/contents/")] == "" {
+			ref = b // a branch made from main's commit reads main's files
+			if b == "base" {
+				ref = "main"
+			}
+		}
+		content, ok := f.files[ref+":"+strings.TrimPrefix(path, "/contents/")]
 		if !ok {
 			http.NotFound(w, r)
 			return
 		}
+		if r.Header.Get("Accept") != "application/vnd.github.raw+json" {
+			write(fmt.Sprintf(`{"sha":%q}`, blob(content)))
+			return
+		}
 		write(content)
 	case r.Method == http.MethodPut && strings.HasPrefix(path, "/contents/"):
+		file := strings.TrimPrefix(path, "/contents/")
+		had, exists := f.files["main:"+file]
+		if f.branches[in["branch"].(string)] != "base" {
+			had, exists = f.files[in["branch"].(string)+":"+file]
+		}
+		if exists && in["sha"] != blob(had) || !exists && in["sha"] != nil {
+			w.WriteHeader(http.StatusUnprocessableEntity)
+			write(`{"message":"\"sha\" wasn't supplied."}`)
+			return
+		}
 		b, _ := base64.StdEncoding.DecodeString(in["content"].(string))
 		f.files[in["branch"].(string)+":"+strings.TrimPrefix(path, "/contents/")] = string(b)
 		w.WriteHeader(http.StatusCreated)
@@ -93,6 +130,7 @@ func (f *fakeSource) serve(w http.ResponseWriter, r *http.Request) {
 		write(`{}`)
 	case r.Method == http.MethodPost && path == "/pulls":
 		pr := map[string]any{"number": 7 + len(f.pulls), "html_url": fmt.Sprintf("https://github.com/acme/tools/pull/%d", 7+len(f.pulls)),
+			"node_id": fmt.Sprintf("PR_%d", 7+len(f.pulls)), "user": map[string]any{"login": f.login},
 			"title": in["title"], "body": in["body"], "state": "open", "head": map[string]any{"ref": in["head"], "sha": "head"}, "base": in["base"]}
 		f.pulls = append([]map[string]any{pr}, f.pulls...)
 		w.WriteHeader(http.StatusCreated)
@@ -133,6 +171,9 @@ func (f *fakeSource) serve(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 	}
 }
+
+// blob is a file's blob SHA as the fake answers it.
+func blob(content string) string { return fmt.Sprintf("blob-%x", len(content)) }
 
 func or(s, def string) string {
 	if s == "" {

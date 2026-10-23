@@ -3,8 +3,9 @@ The ServiceAccount keeps the added sources and the deprecations in the
 release namespace once the tools checked the caller: a person gets no right
 on ToolchainSources or ToolchainDeprecations here, so only an installation
 owner's approve_source records an approval (status), and only a person who
-can push to a source, or an owner, deprecates its toolchains. Nothing else is
-read or written.
+can push to a source, or an owner, deprecates its toolchains. The background
+job keeps the toolchains' pin state in one ConfigMap. Nothing else is read or
+written.
 */}}
 apiVersion: v1
 kind: ServiceAccount
@@ -32,6 +33,13 @@ rules:
   - apiGroups: [toolchain-manager.giantswarm.io]
     resources: [toolchaindeprecations]
     verbs: [get, list, create, delete]
+  - apiGroups: [""]
+    resources: [configmaps]
+    verbs: [create]
+  - apiGroups: [""]
+    resources: [configmaps]
+    resourceNames: [toolchain-manager-updates]
+    verbs: [get, update]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding

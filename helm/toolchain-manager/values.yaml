@@ -53,11 +53,14 @@ owners:
 
 # -- The toolchain sources the installation's configuration names, approved
 # by being named here: each a GitHub repository (owner/name), the registry
-# prefix its toolchains publish under, and the Slack channel of the team
-# that approves its updates.
+# prefix its toolchains publish under, and the owning team: its GitHub team
+# slug (`team`) and its Slack channel's ID (`slackChannel`, C0123ABCDE),
+# where the outdated notices and a major update's ask go.
 sources:
   - repository: giantswarm/agent-toolchains
     registry: gsoci.azurecr.io/giantswarm/agent-toolchains
+    slackChannel: ""
+    team: ""
 
 github:
   # -- GitHub API.
@@ -69,6 +72,25 @@ github:
   # -- Where a repository's owner installs the App,
   # https://github.com/apps/<slug>/installations/new; add_source names it.
   appInstallURL: ""
+
+updates:
+  # -- How often the background job checks the pins of the toolchains the
+  # manager wrote and marks the outdated ones (Go duration); 0 serves no
+  # `update_toolchain`, `approve_update` and no outdated mark.
+  interval: 6h
+
+# -- klaus-gateway's team-review endpoint, where the outdated notices and a
+# major update's ask with its Approve button are posted to a source's team
+# channel. The manager calls it with its own projected ServiceAccount token,
+# which klaus-gateway admits when its `reviews.allowedCallers` lists
+# `system:serviceaccount:<namespace>:toolchain-manager`. Empty `url` posts
+# nothing: the mark stays in the tools, and a major update waits for an
+# approving review on GitHub.
+klausGateway:
+  # -- Base URL, such as http://klaus-gateway.klaus-gateway.svc.cluster.local:8080.
+  url: ""
+  # -- Audience of the projected token, klaus-gateway's `reviews.audience`.
+  audience: klaus-gateway
 
 crds:
   # -- Install the ToolchainSource CRD; kept on uninstall, so removing the

@@ -135,7 +135,7 @@ func (c *Catalog) open(ctx context.Context, token string, src sources.Source, na
 		return nil, fmt.Errorf("branch %s: %w", branch, err)
 	}
 	title := fmt.Sprintf("feat(%s): add the %s toolchain", name, name)
-	if err := c.GitHub.PutFile(ctx, token, src.Repository, branch, path, title, []byte(dockerfile)); err != nil {
+	if err := c.GitHub.PutFile(ctx, token, src.Repository, branch, path, title, "", []byte(dockerfile)); err != nil {
 		return nil, fmt.Errorf("commit %s: %w", path, err)
 	}
 	pr, err := c.GitHub.CreatePull(ctx, token, src.Repository, branch, repo.DefaultBranch, title, pullBody(name, src, dockerfile))
