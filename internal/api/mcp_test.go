@@ -187,7 +187,7 @@ func TestAddPackagesAndBinaryWriteTheGoldenDockerfiles(t *testing.T) {
 	}
 	for _, want := range []string{
 		`sha256: `, `amd64) set -- 'https://github.com/golangci/golangci-lint/releases/download/v2.15.0/golangci-lint-2.15.0-linux-amd64.tar.gz' 9b7fe6a6bf6334b98decf8d86b11415ea7889afdabdd1959fdce23af2a9ebcea`,
-		`go=1.26.9-r0`, `GOROOT=/opt/kagent/tools/go/usr/lib/go`, `rm -f /opt/kagent/tools/go/lib/apk/db/lock`,
+		`go=1.26.10-r0`, `GOROOT=/opt/kagent/tools/go/usr/lib/go`, `rm -f /opt/kagent/tools/go/lib/apk/db/lock`,
 		`io.giantswarm.toolchain.tool.golangci-lint="golangci-lint --version"`,
 		"FROM scratch\nCOPY --from=build /opt/kagent/tools/go/ /",
 	} {
