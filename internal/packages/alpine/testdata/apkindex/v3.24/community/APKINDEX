@@ -92,21 +92,21 @@ c:7216bafbeec91c0f957b5ebe7d87ce2d909674bb
 D:fungw=1.2.2-r3 so:libc.musl-x86_64.so.1 so:libpython3.14.so.1.0
 p:so:libfungw_python3.so.1=1.2.2
 
-C:Q1ViYqQ/ZiWRNPnQPLsahRGVc+Cyk=
+C:Q1J136763SrNwQv8RxjVPAKYm5UGo=
 P:go
-V:1.26.9-r0
+V:1.26.10-r0
 A:x86_64
-S:54913109
-I:186302869
+S:54915449
+I:186308530
 T:Go programming language compiler
 U:https://go.dev/
 L:BSD-3-Clause
 o:go
 m:Achill Gilgenast <achill@achill.org>
-t:1791969450
-c:ee0e55516c1e1d00c3953971f423a7f86172d1bc
+t:1792943566
+c:b16b017fa2ababfd476506afdd7eb76d8f73f0de
 D:binutils gcc musl-dev
-p:go-bootstrap=1.26.9-r0 cmd:go=1.26.9-r0 cmd:gofmt=1.26.9-r0
+p:go-bootstrap=1.26.10-r0 cmd:go=1.26.10-r0 cmd:gofmt=1.26.10-r0
 
 C:Q16BGkE6tUld0KNIpj8QqlYNHRfhM=
 P:goawk

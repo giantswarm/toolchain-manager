@@ -3,8 +3,8 @@
 # spec line below is what the manager reads back, the checksum line covers
 # the rest of the file: a hand edit makes it a hand-written toolchain, which
 # the manager leaves alone.
-# toolchain-manager: {"name":"go","source":"alpine","branch":"v3.24","base":"docker.io/library/alpine:3.24.3@sha256:b3413572228e34bd1c9245f5565e6cd127005655e8a7899aef33d8e83255c9e6","harnesses":["kagent","claude","codex","omp"],"packages":[{"name":"go","version":"1.26.9-r0"}],"binaries":[{"name":"golangci-lint","version":"v2.15.0","from":"golangci/golangci-lint","assets":[{"arch":"amd64","url":"https://github.com/golangci/golangci-lint/releases/download/v2.15.0/golangci-lint-2.15.0-linux-amd64.tar.gz","sha256":"9b7fe6a6bf6334b98decf8d86b11415ea7889afdabdd1959fdce23af2a9ebcea"},{"arch":"arm64","url":"https://github.com/golangci/golangci-lint/releases/download/v2.15.0/golangci-lint-2.15.0-linux-arm64.tar.gz","sha256":"b4d8f17068b35ee6060cc2f69a16fb48740d706fbba81661c318649c114a6998"}]}],"tools":[{"name":"go","version":"go version","env":{"GOROOT":"{prefix}/usr/lib/go"}},{"name":"golangci-lint","path":"usr/local/bin/golangci-lint","version":"golangci-lint --version"}]}
-# toolchain-manager sha256: 66637817aa7d1ade06a7a20924303264f18dc2fe2a1758c54c288892b39aa232
+# toolchain-manager: {"name":"go","source":"alpine","branch":"v3.24","base":"docker.io/library/alpine:3.24.3@sha256:b3413572228e34bd1c9245f5565e6cd127005655e8a7899aef33d8e83255c9e6","harnesses":["kagent","claude","codex","omp"],"packages":[{"name":"go","version":"1.26.10-r0"}],"binaries":[{"name":"golangci-lint","version":"v2.15.0","from":"golangci/golangci-lint","assets":[{"arch":"amd64","url":"https://github.com/golangci/golangci-lint/releases/download/v2.15.0/golangci-lint-2.15.0-linux-amd64.tar.gz","sha256":"9b7fe6a6bf6334b98decf8d86b11415ea7889afdabdd1959fdce23af2a9ebcea"},{"arch":"arm64","url":"https://github.com/golangci/golangci-lint/releases/download/v2.15.0/golangci-lint-2.15.0-linux-arm64.tar.gz","sha256":"b4d8f17068b35ee6060cc2f69a16fb48740d706fbba81661c318649c114a6998"}]}],"tools":[{"name":"go","version":"go version","env":{"GOROOT":"{prefix}/usr/lib/go"}},{"name":"golangci-lint","path":"usr/local/bin/golangci-lint","version":"golangci-lint --version"}]}
+# toolchain-manager sha256: 3e2b94d35e344fd4d4634063dca2c8f00c192306c178d30ad13073969cdceaf8
 
 # The build stage installs everything at the mount directory /opt/kagent/tools/go,
 # since shebangs and library paths embed it, and writes a wrapper per tool
@@ -162,7 +162,7 @@ RUN mkdir -p /opt/kagent/tools/go \
  && apk add --no-cache --no-scripts --root /opt/kagent/tools/go --initdb \
       --keys-dir /etc/apk/keys --repositories-file /etc/apk/repositories \
       musl \
-      go=1.26.9-r0 \
+      go=1.26.10-r0 \
  && rm -f /opt/kagent/tools/go/lib/apk/db/lock \
  && find /opt/kagent/tools/go -type l | while read -r link; do \
       target=$(readlink "$link"); \
@@ -188,5 +188,5 @@ LABEL io.giantswarm.toolchain.name="go" \
       io.giantswarm.toolchain.harnesses="kagent,claude,codex,omp" \
       io.giantswarm.toolchain.tool.go="go version" \
       io.giantswarm.toolchain.tool.golangci-lint="golangci-lint --version" \
-      io.giantswarm.toolchain.package.go="1.26.9-r0" \
+      io.giantswarm.toolchain.package.go="1.26.10-r0" \
       io.giantswarm.toolchain.binary.golangci-lint="v2.15.0"

@@ -774,201 +774,201 @@ c:f3dfad6e6e6354b3367087cd3967d5a94fa9b03d
 D:py3-execnet py3-pytest python3~3.14
 p:pytest-xdist=3.8.0-r1 py3.14:xdist=3.8.0-r1
 
-C:Q1NN2I5sUMrXRCS/HMuJ8t3+9QOso=
+C:Q1a+qIPEy2FFJVbGshcFR98i8a51M=
 P:python3
-V:3.14.8-r0
+V:3.14.10-r1
 A:x86_64
-S:8388442
-I:23554306
+S:8414398
+I:23625229
 T:High-level scripting language
 U:https://www.python.org/
 L:PSF-2.0
 o:python3
 m:Natanael Copa <ncopa@alpinelinux.org>
-t:1790855546
-c:bc27f38b89f034547fd7da4dba62eeb6a0daeb3b
-D:libssl3>=3.3.0 libexpat>=2.8.0 so:libbz2.so.1 so:libc.musl-x86_64.so.1 so:libcrypto.so.3 so:libexpat.so.1 so:libffi.so.8 so:libgdbm_compat.so.4 so:liblzma.so.5 so:libmpdec.so.4 so:libncursesw.so.6 so:libpanelw.so.6 so:libreadline.so.8 so:libsqlite3.so.0 so:libssl.so.3 so:libz.so.1
-p:pythonispython3=3.14.8-r0 cmd:pydoc3.14=3.14.8-r0 cmd:pydoc3=3.14.8-r0 cmd:python3.14=3.14.8-r0 cmd:python3=3.14.8-r0 cmd:python=3.14.8-r0 so:libpython3.14.so.1.0=1.0 so:libpython3.so=0
+t:1793093701
+c:831cfeb7301d5010c027905e42958312698f4e4a
+D:libssl3>=3.3.0 libexpat>=2.9.0 so:libbz2.so.1 so:libc.musl-x86_64.so.1 so:libcrypto.so.3 so:libexpat.so.1 so:libffi.so.8 so:libgdbm_compat.so.4 so:liblzma.so.5 so:libmpdec.so.4 so:libncursesw.so.6 so:libpanelw.so.6 so:libreadline.so.8 so:libsqlite3.so.0 so:libssl.so.3 so:libz.so.1
+p:pythonispython3=3.14.10-r1 cmd:pydoc3.14=3.14.10-r1 cmd:pydoc3=3.14.10-r1 cmd:python3.14=3.14.10-r1 cmd:python3=3.14.10-r1 cmd:python=3.14.10-r1 so:libpython3.14.so.1.0=1.0 so:libpython3.so=0
 
-C:Q1ImD/X1cPSLy7tCw8o+CkIPRXKro=
+C:Q1Qoc4wNMaxhJSl9mJxwk4jC3DWfE=
 P:python3-dbg
-V:3.14.8-r0
+V:3.14.10-r1
 A:x86_64
-S:17209001
-I:42234184
+S:17267269
+I:42430656
 T:High-level scripting language (debug symbols)
 U:https://www.python.org/
 L:PSF-2.0
 o:python3
 m:Natanael Copa <ncopa@alpinelinux.org>
-t:1790855546
-c:bc27f38b89f034547fd7da4dba62eeb6a0daeb3b
-D:!python3-gdbm<3.14.8-r0 !python3-gdbm>3.14.8-r0 !python3<3.14.8-r0 !python3>3.14.8-r0
+t:1793093701
+c:831cfeb7301d5010c027905e42958312698f4e4a
+D:!python3-gdbm<3.14.10-r1 !python3-gdbm>3.14.10-r1 !python3<3.14.10-r1 !python3>3.14.10-r1
 
-C:Q14Yu89rli8jNLEVQxPjpj8dVGAW0=
+C:Q1d+Yj5ZgHTwoLXpsMTAol7oin5Vs=
 P:python3-dev
-V:3.14.8-r0
+V:3.14.10-r1
 A:x86_64
-S:58725777
-I:105569889
+S:58987071
+I:106003146
 T:High-level scripting language (development files)
 U:https://www.python.org/
 L:PSF-2.0
 o:python3
 m:Natanael Copa <ncopa@alpinelinux.org>
-t:1790855546
-c:bc27f38b89f034547fd7da4dba62eeb6a0daeb3b
-D:python3=3.14.8-r0 pkgconfig
-p:cmd:python-config=3.14.8-r0 cmd:python3-config=3.14.8-r0 cmd:python3.14-config=3.14.8-r0 pc:python-3.14-embed=3.14 pc:python-3.14=3.14 pc:python3-embed=3.14 pc:python3=3.14
+t:1793093701
+c:831cfeb7301d5010c027905e42958312698f4e4a
+D:python3=3.14.10-r1 pkgconfig
+p:cmd:python-config=3.14.10-r1 cmd:python3-config=3.14.10-r1 cmd:python3.14-config=3.14.10-r1 pc:python-3.14-embed=3.14 pc:python-3.14=3.14 pc:python3-embed=3.14 pc:python3=3.14
 
-C:Q16+e9pPjB+rClZNUQu6X3mo7nICU=
+C:Q19qXOz1BwUGcIKmthpL4DBilwt8g=
 P:python3-doc
-V:3.14.8-r0
+V:3.14.10-r1
 A:x86_64
-S:15846
+S:15844
 I:22598
 T:High-level scripting language (documentation)
 U:https://www.python.org/
 L:PSF-2.0
 o:python3
 m:Natanael Copa <ncopa@alpinelinux.org>
-t:1790855546
-c:bc27f38b89f034547fd7da4dba62eeb6a0daeb3b
-i:docs python3=3.14.8-r0
+t:1793093701
+c:831cfeb7301d5010c027905e42958312698f4e4a
+i:docs python3=3.14.10-r1
 
-C:Q1DGwQ/KUUjNXX7lM6WRaep1+29/M=
+C:Q1pTskqyx3EArXuuqjAXyZdxxqWRQ=
 P:python3-gdbm
-V:3.14.8-r0
+V:3.14.10-r1
 A:x86_64
-S:9429
+S:9437
 I:27264
 T:Python backend for GNU gdbm
 U:https://www.python.org/
 L:PSF-2.0
 o:python3
 m:Natanael Copa <ncopa@alpinelinux.org>
-t:1790855546
-c:bc27f38b89f034547fd7da4dba62eeb6a0daeb3b
-D:libssl3>=3.3.0 libexpat>=2.8.0 so:libc.musl-x86_64.so.1 so:libgdbm.so.6
+t:1793093701
+c:831cfeb7301d5010c027905e42958312698f4e4a
+D:libssl3>=3.3.0 libexpat>=2.9.0 so:libc.musl-x86_64.so.1 so:libgdbm.so.6
 
-C:Q10emO1byM/HL/F2WNqkLGcI9wux0=
+C:Q1YaBh0qERZk2/+FgO5GJ7gjmTzUc=
 P:python3-idle
-V:3.14.8-r0
+V:3.14.10-r0
 A:x86_64
-S:1234451
-I:4212572
+S:1234797
+I:4214082
 T:IDE for Python3 using Tkinter
 U:https://wiki.python.org/moin/TkInter
 L:PSF-2.0
 o:python3-tkinter
 m:Jingyun Hua <huajingyun@loongson.cn>
-t:1790855546
-c:cb851926e9801dfd37ecd5247156bcc1ef750a58
-D:python3-tkinter=3.14.8-r0 python3 python3-tests
-p:cmd:idle3.14=3.14.8-r0 cmd:idle=3.14.8-r0
+t:1793086356
+c:290beef116cf20ddb5fa37bc64d06a533f5121f9
+D:python3-tkinter=3.14.10-r0 python3 python3-tests
+p:cmd:idle3.14=3.14.10-r0 cmd:idle=3.14.10-r0
 
-C:Q1MgO/ybewDyjFtXMxB4S6JNXetqg=
+C:Q1Pp5h8UMZU5dqp8vPe99Kci0780c=
 P:python3-pyc
-V:3.14.8-r0
+V:3.14.10-r1
 A:x86_64
-S:1314
+S:1316
 I:0
 T:High-level scripting language (install .pyc cache files)
 U:https://www.python.org/
 L:PSF-2.0
 o:python3
 m:Natanael Copa <ncopa@alpinelinux.org>
-t:1790855546
-c:bc27f38b89f034547fd7da4dba62eeb6a0daeb3b
-D:python3-pycache-pyc0=3.14.8-r0 pyc
-i:python3=3.14.8-r0
+t:1793093701
+c:831cfeb7301d5010c027905e42958312698f4e4a
+D:python3-pycache-pyc0=3.14.10-r1 pyc
+i:python3=3.14.10-r1
 
-C:Q1MWKq8KirrFH8CR5AQjQy+sNiXXA=
+C:Q1uFY5FcOlq3gIaGi0SeqBTqJkonk=
 P:python3-pycache-pyc0
-V:3.14.8-r0
+V:3.14.10-r1
 A:x86_64
-S:4489386
-I:11655208
+S:4495572
+I:11671309
 T:High-level scripting language (.pyc pycache files)
 U:https://www.python.org/
 L:PSF-2.0
 o:python3
 m:Natanael Copa <ncopa@alpinelinux.org>
-t:1790855546
-c:bc27f38b89f034547fd7da4dba62eeb6a0daeb3b
+t:1793093701
+c:831cfeb7301d5010c027905e42958312698f4e4a
 
-C:Q1n70TfAKm/fzSot+KwubRepKKlls=
+C:Q1SUImmXGeWhVLWWG+9mBbxNLLjEI=
 P:python3-pycache-pyc1
-V:3.14.8-r0
+V:3.14.10-r1
 A:x86_64
-S:4472512
-I:11611963
+S:4479320
+I:11627924
 T:High-level scripting language (.opt-1.pyc pycache files)
 U:https://www.python.org/
 L:PSF-2.0
 o:python3
 m:Natanael Copa <ncopa@alpinelinux.org>
-t:1790855546
-c:bc27f38b89f034547fd7da4dba62eeb6a0daeb3b
+t:1793093701
+c:831cfeb7301d5010c027905e42958312698f4e4a
 
-C:Q1fH+810IBYyvbXeP6pRVAc/QOKIM=
+C:Q1He782OLJvigO3dw2qYxpbxJeDW0=
 P:python3-pycache-pyc2
-V:3.14.8-r0
+V:3.14.10-r1
 A:x86_64
-S:3886002
-I:10111845
+S:3891732
+I:10125473
 T:High-level scripting language (.opt-2.pyc pycache files)
 U:https://www.python.org/
 L:PSF-2.0
 o:python3
 m:Natanael Copa <ncopa@alpinelinux.org>
-t:1790855546
-c:bc27f38b89f034547fd7da4dba62eeb6a0daeb3b
+t:1793093701
+c:831cfeb7301d5010c027905e42958312698f4e4a
 
-C:Q1ZSJmJHPlf83JQcsftAt/RyaOSKo=
+C:Q1Zh6lnfgTNs40ioeU5Ve9hiSwIgM=
 P:python3-tests
-V:3.14.8-r0
+V:3.14.10-r1
 A:x86_64
-S:39989116
-I:161891340
+S:40366165
+I:163132568
 T:The test modules from the main python package
 U:https://www.python.org/
 L:PSF-2.0
 o:python3
 m:Natanael Copa <ncopa@alpinelinux.org>
-t:1790855546
-c:bc27f38b89f034547fd7da4dba62eeb6a0daeb3b
-D:libssl3>=3.3.0 libexpat>=2.8.0
+t:1793093701
+c:831cfeb7301d5010c027905e42958312698f4e4a
+D:libssl3>=3.3.0 libexpat>=2.9.0
 
-C:Q1sibA/PBa4OoYIMWS+ZxUzte5nQE=
+C:Q1U1953QEqHTBHFc41p2Jg1Ss6YRw=
 P:python3-tkinter
-V:3.14.8-r0
+V:3.14.10-r0
 A:x86_64
-S:100807
-I:377714
+S:100863
+I:377826
 T:A graphical user interface for the Python programming language
 U:https://wiki.python.org/moin/TkInter
 L:PSF-2.0
 o:python3-tkinter
 m:Jingyun Hua <huajingyun@loongson.cn>
-t:1790855546
-c:cb851926e9801dfd37ecd5247156bcc1ef750a58
+t:1793086356
+c:290beef116cf20ddb5fa37bc64d06a533f5121f9
 D:so:libc.musl-x86_64.so.1 so:libtcl8.6.so so:libtk8.6.so
 
-C:Q1KZSSUc3PGP1rFDm74tPxoT+2un8=
+C:Q1bzNI0gmsDjJCWMhge4CAzifyGOY=
 P:python3-tkinter-pyc
-V:3.14.8-r0
+V:3.14.10-r0
 A:x86_64
-S:347860
-I:1162253
+S:347717
+I:1162742
 T:Precompiled Python bytecode for python3-tkinter
 U:https://wiki.python.org/moin/TkInter
 L:PSF-2.0
 o:python3-tkinter
 m:Jingyun Hua <huajingyun@loongson.cn>
-t:1790855546
-c:cb851926e9801dfd37ecd5247156bcc1ef750a58
-i:python3-tkinter=3.14.8-r0 pyc
+t:1793086356
+c:290beef116cf20ddb5fa37bc64d06a533f5121f9
+i:python3-tkinter=3.14.10-r0 pyc
 
 C:Q1lFsW43i8AORNidTegSS7p2R/300=
 P:readline
