@@ -3,8 +3,8 @@
 # spec line below is what the manager reads back, the checksum line covers
 # the rest of the file: a hand edit makes it a hand-written toolchain, which
 # the manager leaves alone.
-# toolchain-manager: {"name":"python","source":"alpine","branch":"v3.22","base":"docker.io/library/alpine:3.22.7@sha256:e9f2de928efcc1b53d0948e684b4f490315f280de6044844ec0ff26c0b44d3cf","harnesses":["kagent","claude","codex","omp"],"packages":[{"name":"python3","version":"3.12.15-r0"},{"name":"py3-pytest","version":"8.3.5-r0"}],"tools":[{"name":"python3","version":"python3 --version","env":{"PYTHONHOME":"{prefix}/usr"}},{"name":"pytest","version":"pytest --version","env":{"PYTHONHOME":"{prefix}/usr"}}]}
-# toolchain-manager sha256: dae49f289ee0342cdd1db09619a13878cb136cc261d4ec1142c6a771c40fc2d8
+# toolchain-manager: {"name":"python","source":"alpine","branch":"v3.22","base":"docker.io/library/alpine:3.22.7@sha256:e9f2de928efcc1b53d0948e684b4f490315f280de6044844ec0ff26c0b44d3cf","harnesses":["kagent","claude","codex","omp"],"packages":[{"name":"python3","version":"3.12.16-r0"},{"name":"py3-pytest","version":"8.3.5-r0"}],"tools":[{"name":"python3","version":"python3 --version","env":{"PYTHONHOME":"{prefix}/usr"}},{"name":"pytest","version":"pytest --version","env":{"PYTHONHOME":"{prefix}/usr"}}]}
+# toolchain-manager sha256: 0e95326895daab8a96f414f573e5b41de64f58b5aac0790582bb94617e576470
 
 # The build stage installs everything at the mount directory /opt/kagent/tools/python,
 # since shebangs and library paths embed it, and writes a wrapper per tool
@@ -121,7 +121,7 @@ RUN mkdir -p /opt/kagent/tools/python \
  && apk add --no-cache --no-scripts --root /opt/kagent/tools/python --initdb \
       --keys-dir /etc/apk/keys --repositories-file /etc/apk/repositories \
       musl \
-      python3=3.12.15-r0 \
+      python3=3.12.16-r0 \
       py3-pytest=8.3.5-r0 \
  && rm -f /opt/kagent/tools/python/lib/apk/db/lock \
  && find /opt/kagent/tools/python -type l | while read -r link; do \
@@ -140,5 +140,5 @@ LABEL io.giantswarm.toolchain.name="python" \
       io.giantswarm.toolchain.harnesses="kagent,claude,codex,omp" \
       io.giantswarm.toolchain.tool.python3="python3 --version" \
       io.giantswarm.toolchain.tool.pytest="pytest --version" \
-      io.giantswarm.toolchain.package.python3="3.12.15-r0" \
+      io.giantswarm.toolchain.package.python3="3.12.16-r0" \
       io.giantswarm.toolchain.package.py3-pytest="8.3.5-r0"
