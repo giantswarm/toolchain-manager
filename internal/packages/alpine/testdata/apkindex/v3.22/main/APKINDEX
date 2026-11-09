@@ -298,21 +298,21 @@ k:100
 D:so:libc.musl-x86_64.so.1
 p:so:libcrypto.so.3=3
 
-C:Q1eBf5kOjFcDpvbzk6zSTubstxKKw=
+C:Q1HOwPuYAsDiIq7yeu88CrkNBm00s=
 P:libexpat
-V:2.9.0-r0
+V:2.10.0-r0
 A:x86_64
-S:62174
-I:140992
+S:63751
+I:145088
 T:XML Parser library written in C (libraries)
 U:https://libexpat.github.io/
 L:MIT
 o:expat
 m:Carlo Landmeter <clandmeter@alpinelinux.org>
-t:1792235243
-c:f71ec7147f3df6e984064717d4200875fc8834c4
+t:1793625313
+c:e7473064be733caf6876525ecc41181e5137f399
 D:so:libc.musl-x86_64.so.1
-p:so:libexpat.so.1=1.13.0
+p:so:libexpat.so.1=1.13.1
 
 C:Q15dARGPWtAIuy3wdjWvNkkztP8g8=
 P:libffi
@@ -680,158 +680,158 @@ c:26cb6080d36fa01bb25ec01c9a0c9879650d856c
 D:py3-iniconfig py3-packaging py3-pluggy py3-py python3~3.12
 i:py3-pytest=8.3.5-r0 pyc
 
-C:Q1DiUH/6LER8o7OsAhlwv+MONZKGc=
+C:Q1fshtSJniL1ZpHGI+XnYvESzI5aA=
 P:python3
-V:3.12.15-r0
+V:3.12.16-r0
 A:x86_64
-S:8078995
-I:24001128
+S:8080775
+I:24006098
 T:High-level scripting language
 U:https://www.python.org/
 L:PSF-2.0
 o:python3
 m:Natanael Copa <ncopa@alpinelinux.org>
-t:1790847145
-c:18ae07d47fb83eecf3343ba1d41fddb4b70b116d
-D:libssl3>=3.3.0 libexpat>=2.8.0 so:libbz2.so.1 so:libc.musl-x86_64.so.1 so:libcrypto.so.3 so:libexpat.so.1 so:libffi.so.8 so:libgdbm_compat.so.4 so:liblzma.so.5 so:libmpdec.so.4 so:libncursesw.so.6 so:libpanelw.so.6 so:libreadline.so.8 so:libsqlite3.so.0 so:libssl.so.3 so:libz.so.1
-p:pythonispython3=3.12.15-r0 so:libpython3.12.so.1.0=1.0 so:libpython3.so=0 cmd:2to3-3.12=3.12.15-r0 cmd:2to3=3.12.15-r0 cmd:pydoc3.12=3.12.15-r0 cmd:pydoc3=3.12.15-r0 cmd:python3.12=3.12.15-r0 cmd:python3=3.12.15-r0 cmd:python=3.12.15-r0
+t:1793104915
+c:712199df117586aee4a5a8138360636deafcae27
+D:libssl3>=3.3.0 libexpat>=2.9.0 so:libbz2.so.1 so:libc.musl-x86_64.so.1 so:libcrypto.so.3 so:libexpat.so.1 so:libffi.so.8 so:libgdbm_compat.so.4 so:liblzma.so.5 so:libmpdec.so.4 so:libncursesw.so.6 so:libpanelw.so.6 so:libreadline.so.8 so:libsqlite3.so.0 so:libssl.so.3 so:libz.so.1
+p:pythonispython3=3.12.16-r0 so:libpython3.12.so.1.0=1.0 so:libpython3.so=0 cmd:2to3-3.12=3.12.16-r0 cmd:2to3=3.12.16-r0 cmd:pydoc3.12=3.12.16-r0 cmd:pydoc3=3.12.16-r0 cmd:python3.12=3.12.16-r0 cmd:python3=3.12.16-r0 cmd:python=3.12.16-r0
 
-C:Q1cqYf4sYT6sYf+iCXe/9rA8WAgOc=
+C:Q1QMvnmZPqvCnJkqfueHCvwJMmsZY=
 P:python3-dbg
-V:3.12.15-r0
+V:3.12.16-r0
 A:x86_64
-S:13975029
-I:33033000
+S:13975463
+I:33035152
 T:High-level scripting language (debug symbols)
 U:https://www.python.org/
 L:PSF-2.0
 o:python3
 m:Natanael Copa <ncopa@alpinelinux.org>
-t:1790847145
-c:18ae07d47fb83eecf3343ba1d41fddb4b70b116d
-D:libssl3>=3.3.0 libexpat>=2.8.0 !python3-gdbm<3.12.15-r0 !python3-gdbm>3.12.15-r0 !python3<3.12.15-r0 !python3>3.12.15-r0
+t:1793104915
+c:712199df117586aee4a5a8138360636deafcae27
+D:libssl3>=3.3.0 libexpat>=2.9.0 !python3-gdbm<3.12.16-r0 !python3-gdbm>3.12.16-r0 !python3<3.12.16-r0 !python3>3.12.16-r0
 
-C:Q1X473g7pjJKBgx1nC99DFyu179FA=
+C:Q148xSEDZWIFl+uIAklPiLzKtZdJM=
 P:python3-dev
-V:3.12.15-r0
+V:3.12.16-r0
 A:x86_64
-S:16316306
-I:45546066
+S:16316158
+I:45546122
 T:High-level scripting language (development files)
 U:https://www.python.org/
 L:PSF-2.0
 o:python3
 m:Natanael Copa <ncopa@alpinelinux.org>
-t:1790847145
-c:18ae07d47fb83eecf3343ba1d41fddb4b70b116d
-D:pkgconfig python3=3.12.15-r0
-p:pc:python-3.12-embed=3.12 pc:python-3.12=3.12 pc:python3-embed=3.12 pc:python3=3.12 cmd:python-config=3.12.15-r0 cmd:python3-config=3.12.15-r0 cmd:python3.12-config=3.12.15-r0
+t:1793104915
+c:712199df117586aee4a5a8138360636deafcae27
+D:pkgconfig python3=3.12.16-r0
+p:pc:python-3.12-embed=3.12 pc:python-3.12=3.12 pc:python3-embed=3.12 pc:python3=3.12 cmd:python-config=3.12.16-r0 cmd:python3-config=3.12.16-r0 cmd:python3.12-config=3.12.16-r0
 
-C:Q1HHBcz1sdlQyW8DlTTnGRk9BqLdQ=
+C:Q1N09x9Z3Ys1qHWSwHLt4HvrqDEI0=
 P:python3-doc
-V:3.12.15-r0
+V:3.12.16-r0
 A:x86_64
-S:14520
+S:14517
 I:21362
 T:High-level scripting language (documentation)
 U:https://www.python.org/
 L:PSF-2.0
 o:python3
 m:Natanael Copa <ncopa@alpinelinux.org>
-t:1790847145
-c:18ae07d47fb83eecf3343ba1d41fddb4b70b116d
-i:docs python3=3.12.15-r0
+t:1793104915
+c:712199df117586aee4a5a8138360636deafcae27
+i:docs python3=3.12.16-r0
 
-C:Q1v/ycvYp03Fs7HtIYzm1/bkRKd0Y=
+C:Q1XQmRbVrOV5liM80OnPrnglEbAAY=
 P:python3-gdbm
-V:3.12.15-r0
+V:3.12.16-r0
 A:x86_64
-S:9612
+S:9617
 I:27256
 T:Python backend for GNU gdbm
 U:https://www.python.org/
 L:PSF-2.0
 o:python3
 m:Natanael Copa <ncopa@alpinelinux.org>
-t:1790847145
-c:18ae07d47fb83eecf3343ba1d41fddb4b70b116d
-D:libssl3>=3.3.0 libexpat>=2.8.0 so:libc.musl-x86_64.so.1 so:libgdbm.so.6
+t:1793104915
+c:712199df117586aee4a5a8138360636deafcae27
+D:libssl3>=3.3.0 libexpat>=2.9.0 so:libc.musl-x86_64.so.1 so:libgdbm.so.6
 
-C:Q17OVXUpGwp5QZnS4tauePqDi6MAk=
+C:Q1NLfXqVeSEWBcEYTaNyTnX1AQvvA=
 P:python3-pyc
-V:3.12.15-r0
+V:3.12.16-r0
 A:x86_64
-S:1317
+S:1315
 I:0
 T:High-level scripting language (install .pyc cache files)
 U:https://www.python.org/
 L:PSF-2.0
 o:python3
 m:Natanael Copa <ncopa@alpinelinux.org>
-t:1790847145
-c:18ae07d47fb83eecf3343ba1d41fddb4b70b116d
-D:python3-pycache-pyc0=3.12.15-r0 pyc
-i:python3=3.12.15-r0
+t:1793104915
+c:712199df117586aee4a5a8138360636deafcae27
+D:python3-pycache-pyc0=3.12.16-r0 pyc
+i:python3=3.12.16-r0
 
-C:Q1ERqP7wdLmFF1bJgymvKBvp3IUwQ=
+C:Q1RjqxC/kcX1UFkdc1KIUeU2hagzE=
 P:python3-pycache-pyc0
-V:3.12.15-r0
+V:3.12.16-r0
 A:x86_64
-S:4180913
-I:10794508
+S:4182758
+I:10798438
 T:High-level scripting language (.pyc pycache files)
 U:https://www.python.org/
 L:PSF-2.0
 o:python3
 m:Natanael Copa <ncopa@alpinelinux.org>
-t:1790847145
-c:18ae07d47fb83eecf3343ba1d41fddb4b70b116d
-D:libssl3>=3.3.0 libexpat>=2.8.0
+t:1793104915
+c:712199df117586aee4a5a8138360636deafcae27
+D:libssl3>=3.3.0 libexpat>=2.9.0
 
-C:Q171EECaT6cb6nrfwv+j0A4RpT9ik=
+C:Q1k4dIVBTQkwSxoLP0E8cnY714hn0=
 P:python3-pycache-pyc1
-V:3.12.15-r0
+V:3.12.16-r0
 A:x86_64
-S:4163514
-I:10753246
+S:4165263
+I:10757176
 T:High-level scripting language (.opt-1.pyc pycache files)
 U:https://www.python.org/
 L:PSF-2.0
 o:python3
 m:Natanael Copa <ncopa@alpinelinux.org>
-t:1790847145
-c:18ae07d47fb83eecf3343ba1d41fddb4b70b116d
-D:libssl3>=3.3.0 libexpat>=2.8.0
+t:1793104915
+c:712199df117586aee4a5a8138360636deafcae27
+D:libssl3>=3.3.0 libexpat>=2.9.0
 
-C:Q1Z13xQhAYCL2ObanH9tPbQkFjtwg=
+C:Q1UXkjyzV0faxS6oGDawLXBgUWqWU=
 P:python3-pycache-pyc2
-V:3.12.15-r0
+V:3.12.16-r0
 A:x86_64
-S:3578073
-I:9138441
+S:3579844
+I:9142371
 T:High-level scripting language (.opt-2.pyc pycache files)
 U:https://www.python.org/
 L:PSF-2.0
 o:python3
 m:Natanael Copa <ncopa@alpinelinux.org>
-t:1790847145
-c:18ae07d47fb83eecf3343ba1d41fddb4b70b116d
-D:libssl3>=3.3.0 libexpat>=2.8.0
+t:1793104915
+c:712199df117586aee4a5a8138360636deafcae27
+D:libssl3>=3.3.0 libexpat>=2.9.0
 
-C:Q1gHT39Tvqw1tuoDvY/JbACY0klkk=
+C:Q1ASDA3PQk2NcaGR5v04MqW59LJDA=
 P:python3-tests
-V:3.12.15-r0
+V:3.12.16-r0
 A:x86_64
-S:33678128
-I:136559976
+S:33702543
+I:136633735
 T:The test modules from the main python package
 U:https://www.python.org/
 L:PSF-2.0
 o:python3
 m:Natanael Copa <ncopa@alpinelinux.org>
-t:1790847145
-c:18ae07d47fb83eecf3343ba1d41fddb4b70b116d
-D:libssl3>=3.3.0 libexpat>=2.8.0
+t:1793104915
+c:712199df117586aee4a5a8138360636deafcae27
+D:libssl3>=3.3.0 libexpat>=2.9.0
 
 C:Q10wVkASF5P9eadjbtEPzGyxAVXjg=
 P:readline
@@ -897,21 +897,21 @@ c:4ad8da6dc8e2b7ed46653b9844835babc3a166ae
 D:so:libc.musl-x86_64.so.1
 p:so:liblzma.so.5=5.8.4
 
-C:Q1/4h5E7MrlBVDXCCuIDGXwWkzrzs=
+C:Q1EHjMEsJcFTsyYtFfIcswNU8ZoRA=
 P:zlib
-V:1.3.2-r1
+V:1.4-r0
 A:x86_64
-S:55457
-I:104280
+S:56274
+I:108376
 T:A compression/decompression Library
 U:https://zlib.net/
 L:Zlib
 o:zlib
 m:Natanael Copa <ncopa@alpinelinux.org>
-t:1791319033
-c:121fc97db0e7c59db704891b6d7ef83ae5df2cc2
+t:1793989581
+c:a01d2885b6dc5443913a4a40f3689984ab66e7bb
 D:so:libc.musl-x86_64.so.1
-p:so:libz.so.1=1.3.2
+p:so:libz.so.1=1.4
 
 C:Q1UMgxErVhn0jTbWkZCky3xx8Vx9I=
 P:zstd-libs

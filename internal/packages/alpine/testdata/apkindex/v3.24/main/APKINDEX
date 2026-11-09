@@ -282,21 +282,21 @@ k:100
 D:so:libc.musl-x86_64.so.1
 p:so:libcrypto.so.3=3
 
-C:Q1tugvqnkTpj2ncbvdqmrTiEIEf3g=
+C:Q1sJ3mbRK300qoX/3bSQgNsvVLmDY=
 P:libexpat
-V:2.9.0-r0
+V:2.10.0-r0
 A:x86_64
-S:62175
-I:140992
+S:63634
+I:145088
 T:XML Parser library written in C (libraries)
 U:https://libexpat.github.io/
 L:MIT
 o:expat
 m:Carlo Landmeter <clandmeter@alpinelinux.org>
-t:1792234642
-c:c10df79ce35862cf273f98f6eb78d52e4f064ac7
+t:1793625171
+c:af0fa42036cd6e626768c0d65fddaa1d1b30cf21
 D:so:libc.musl-x86_64.so.1
-p:so:libexpat.so.1=1.13.0
+p:so:libexpat.so.1=1.13.1
 
 C:Q1L3smH3/OzE7r2LMw5/b7gHE7/jo=
 P:libffi
@@ -1034,21 +1034,21 @@ c:0c088d609f9fe69eedd6b4c7f4b99cdad847c20a
 D:so:libc.musl-x86_64.so.1
 p:so:liblzma.so.5=5.8.4
 
-C:Q1T1JcjMIE+EuLTKQNs744mVjwVsY=
+C:Q14j+c5OMsvdJ78cidhOg7phxCkLw=
 P:zlib
-V:1.3.2-r1
+V:1.4-r0
 A:x86_64
-S:56210
+S:56761
 I:108376
 T:A compression/decompression Library
 U:https://zlib.net/
 L:Zlib
 o:zlib
 m:Natanael Copa <ncopa@alpinelinux.org>
-t:1791318860
-c:0afa2da0e8c8051c6f8f64a7a388e5a259904245
+t:1793989322
+c:bdf501c870a92a05c097857401f69c48c4810384
 D:so:libc.musl-x86_64.so.1
-p:so:libz.so.1=1.3.2
+p:so:libz.so.1=1.4
 
 C:Q1lWnOOpfEEJ6OU93enz4b0nJhNUA=
 P:zstd-libs
