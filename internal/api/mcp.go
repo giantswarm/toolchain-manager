@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"strings"
 
+	"github.com/giantswarm/mcp-toolkit/brand"
 	"github.com/mark3labs/mcp-go/mcp"
 	mcpserver "github.com/mark3labs/mcp-go/server"
 
@@ -40,6 +41,7 @@ func NewMCPServer(svc *Service, version string) *mcpserver.MCPServer {
 	s := mcpserver.NewMCPServer("toolchain-manager", version,
 		mcpserver.WithToolCapabilities(false),
 		mcpserver.WithInstructions(instr),
+		brand.WithGiantSwarmIcon(),
 	)
 	t := &tools{svc: svc}
 
