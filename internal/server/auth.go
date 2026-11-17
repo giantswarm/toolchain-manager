@@ -15,7 +15,6 @@ package server
 import (
 	"context"
 	"crypto/sha256"
-	"crypto/tls"
 	"crypto/x509"
 	"errors"
 	"fmt"
@@ -28,6 +27,7 @@ import (
 	"time"
 
 	"github.com/coreos/go-oidc/v3/oidc"
+	mcpoidc "github.com/giantswarm/mcp-oauth/providers/oidc"
 
 	"github.com/giantswarm/toolchain-manager/internal/github"
 	"github.com/giantswarm/toolchain-manager/internal/identity"
@@ -83,7 +83,7 @@ func NewGuard(ctx context.Context, cfg AuthConfig, log *slog.Logger) (*Guard, er
 	if cfg.Issuer == "" || len(cfg.Audiences) == 0 {
 		return nil, errors.New("auth: the Dex issuer and at least one trusted audience are required")
 	}
-	hc := &http.Client{Timeout: 15 * time.Second}
+	var rootCAs *x509.CertPool
 	if cfg.CAFile != "" {
 		pem, err := os.ReadFile(cfg.CAFile) // #nosec G304 -- operator-provided path
 		if err != nil {
@@ -96,8 +96,9 @@ func NewGuard(ctx context.Context, cfg AuthConfig, log *slog.Logger) (*Guard, er
 		if !pool.AppendCertsFromPEM(pem) {
 			return nil, fmt.Errorf("auth: no CA certificate in %s", cfg.CAFile)
 		}
-		hc.Transport = &http.Transport{TLSClientConfig: &tls.Config{RootCAs: pool, MinVersion: tls.VersionTLS12}}
+		rootCAs = pool
 	}
+	hc := mcpoidc.NewDefaultDialHTTPClient(15*time.Second, rootCAs)
 	keyCtx := oidc.ClientContext(context.Background(), hc)
 	oidcCfg := &oidc.Config{SkipClientIDCheck: true}
 	var keys *oidc.IDTokenVerifier
