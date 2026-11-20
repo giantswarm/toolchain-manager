@@ -7,7 +7,7 @@ require (
 	github.com/giantswarm/mcp-oauth v1.14.2
 	github.com/giantswarm/mcp-toolkit v0.5.3
 	github.com/go-jose/go-jose/v4 v4.1.9
-	github.com/mark3labs/mcp-go v1.5.0
+	github.com/mark3labs/mcp-go v1.6.0
 	github.com/spf13/cobra v1.10.2
 	k8s.io/api v0.37.2
 	k8s.io/apimachinery v0.37.2
