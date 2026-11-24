@@ -70,6 +70,18 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
+            {{- if eq (include "toolchain-manager.auth" .) "true" }}
+            {{- with .Values.auth.requestStateSecret }}
+            {{- if .name }}
+            - name: OAUTH_REQUEST_STATE_KEY_FILE
+              value: /etc/toolchain-manager/request-state/{{ .key }}
+            {{- with .previousKey }}
+            - name: OAUTH_REQUEST_STATE_PREVIOUS_KEY_FILE
+              value: /etc/toolchain-manager/request-state/{{ . }}
+            {{- end }}
+            {{- end }}
+            {{- end }}
+            {{- end }}
           ports:
             - name: http
               containerPort: 8080
@@ -96,6 +108,11 @@ spec:
               mountPath: /etc/toolchain-manager/dex-ca
               readOnly: true
             {{- end }}
+            {{- if .Values.auth.requestStateSecret.name }}
+            - name: request-state
+              mountPath: /etc/toolchain-manager/request-state
+              readOnly: true
+            {{- end }}
             {{- if .Values.klausGateway.url }}
             - name: klaus-gateway-token
               mountPath: /var/run/secrets/klaus-gateway
@@ -111,6 +128,20 @@ spec:
         - name: dex-ca
           secret:
             secretName: {{ . }}
+        {{- end }}
+        {{- with .Values.auth.requestStateSecret }}
+        {{- if .name }}
+        - name: request-state
+          secret:
+            secretName: {{ .name }}
+            items:
+              - key: {{ .key }}
+                path: {{ .key }}
+              {{- with .previousKey }}
+              - key: {{ . }}
+                path: {{ . }}
+              {{- end }}
+        {{- end }}
         {{- end }}
         {{- if .Values.klausGateway.url }}
         {{- /* The manager's own identity toward klaus-gateway, verified there by TokenReview. */}}

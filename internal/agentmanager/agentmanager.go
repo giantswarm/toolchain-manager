@@ -7,13 +7,17 @@ package agentmanager
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net/url"
 	"strings"
+	"sync"
 	"time"
 
+	"github.com/giantswarm/mcp-toolkit/urlelicitation"
 	mcpclient "github.com/mark3labs/mcp-go/client"
 	"github.com/mark3labs/mcp-go/client/transport"
 	"github.com/mark3labs/mcp-go/mcp"
@@ -76,18 +80,25 @@ func (c *Client) Users(ctx context.Context, bearer, name, version string) (toolc
 
 // call runs tool through muster's call_tool as the person, one MCP session
 // per call, and returns its JSON result: the structured content, else the
-// text when that is a JSON object, as agent-manager answers.
+// text when that is a JSON object, as agent-manager answers. On a context
+// from WithRelay the call declares URL mode elicitation, so muster asks for
+// a sign-in as an InputRequiredResult, which the Relay records and call
+// answers as an error naming its URL.
 func (c *Client) call(ctx context.Context, bearer, tool string, args map[string]any) (json.RawMessage, error) {
 	if bearer == "" {
 		return nil, errors.New("muster: the call carries no Dex ID token of the person")
 	}
 	ctx, cancel := context.WithTimeout(ctx, callTimeout)
 	defer cancel()
-	client, err := mcpclient.NewStreamableHttpClient(c.endpoint,
+	t, err := transport.NewStreamableHTTP(c.endpoint,
 		transport.WithHTTPHeaders(map[string]string{"Authorization": "Bearer " + bearer}))
 	if err != nil {
 		return nil, fmt.Errorf("muster MCP client: %w", err)
 	}
+	// A server/discover slower than mcp-go's probe bound would fall back to
+	// the 2025-11-25 handshake, which carries no InputRequiredResult; the
+	// call's own deadline bounds it.
+	client := mcpclient.NewClient(t, mcpclient.WithDiscoverTimeout(-1), mcpclient.WithManualInputRoundTrips())
 	defer func() { _ = client.Close() }()
 	if err := client.Start(ctx); err != nil {
 		return nil, fmt.Errorf("muster: %w", err)
@@ -101,9 +112,25 @@ func (c *Client) call(ctx context.Context, bearer, tool string, args map[string]
 	req := mcp.CallToolRequest{}
 	req.Params.Name = metaCallTool
 	req.Params.Arguments = map[string]any{"name": tool, "arguments": args}
+	relay := relayFrom(ctx)
+	target := callTarget(tool, args)
+	if relay != nil {
+		ctx = mcpclient.WithRequestClientCapabilities(ctx, urlElicitation)
+		req.Params.MultiRoundTripParams = relay.answer(target)
+	}
 	outer, err := client.CallTool(ctx, req)
 	if err != nil {
 		return nil, fmt.Errorf("muster: call %s: %w", tool, err)
+	}
+	if outer.NeedsInput() {
+		relayed, err := urlelicitation.FromInputRequired(outer)
+		if err != nil {
+			return nil, fmt.Errorf("muster: call %s: %w", tool, err)
+		}
+		if relay != nil {
+			relay.record(target, relayed)
+		}
+		return nil, fmt.Errorf("muster did not run %s: %s Open %s and then retry", tool, relayed.Message, relayed.URL)
 	}
 	inner, dispatched := unwrap(outer)
 	if inner.IsError {
@@ -155,4 +182,77 @@ func structuredOf(r *mcp.CallToolResult) json.RawMessage {
 		return nil
 	}
 	return raw
+}
+
+// urlElicitation is what a call on a context from WithRelay declares to
+// muster.
+var urlElicitation = mcp.ClientCapabilities{Elicitation: &mcp.ElicitationCapability{URL: &struct{}{}}}
+
+// Relay carries muster's sign-ins between one tool call of the
+// toolchain-manager and that call's caller. Calls through muster on a
+// context from WithRelay declare URL mode elicitation; the first sign-in
+// muster asks for is kept for the caller, and the caller's answer goes once
+// to the call it was asked for, the same tool with the same arguments.
+type Relay struct {
+	mu       sync.Mutex
+	retry    *urlelicitation.Retry
+	answered bool
+	signIn   *SignIn
+}
+
+// SignIn is a sign-in muster asked a call for.
+type SignIn struct {
+	// Target names the call: the tool and a digest of its arguments.
+	Target string
+	// Relayed is muster's URL elicitation and requestState.
+	Relayed *urlelicitation.Relayed
+}
+
+type relayKey struct{}
+
+// WithRelay returns a context whose calls through muster relay sign-ins,
+// and the Relay that collects them. retry is the caller's answer to a
+// sign-in relayed earlier; nil on a first call.
+func WithRelay(ctx context.Context, retry *urlelicitation.Retry) (context.Context, *Relay) {
+	r := &Relay{retry: retry}
+	return context.WithValue(ctx, relayKey{}, r), r
+}
+
+func relayFrom(ctx context.Context) *Relay {
+	r, _ := ctx.Value(relayKey{}).(*Relay)
+	return r
+}
+
+// SignIn is the first sign-in muster asked for; nil when none.
+func (r *Relay) SignIn() *SignIn {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	return r.signIn
+}
+
+// answer is the caller's answer for the call target, once.
+func (r *Relay) answer(target string) mcp.MultiRoundTripParams {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if r.retry == nil || r.answered || r.retry.Target != target {
+		return mcp.MultiRoundTripParams{}
+	}
+	r.answered = true
+	return r.retry.Params
+}
+
+func (r *Relay) record(target string, relayed *urlelicitation.Relayed) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if r.signIn == nil {
+		r.signIn = &SignIn{Target: target, Relayed: relayed}
+	}
+}
+
+// callTarget names a call through muster: the tool and a digest of its
+// arguments. encoding/json orders map keys, so equal arguments name alike.
+func callTarget(tool string, args map[string]any) string {
+	raw, _ := json.Marshal(args)
+	digest := sha256.Sum256(raw)
+	return tool + "\x00" + hex.EncodeToString(digest[:])
 }

@@ -43,6 +43,18 @@ auth:
   # -- OAuth client ids whose Dex ID tokens are accepted: the platform client
   # and the audiences muster requires.
   trustedAudiences: []
+  # -- Existing Secret in the release namespace with the 32-byte key (base64
+  # or hex) that seals the requestState of a muster sign-in relayed to the
+  # tool's caller as URL mode elicitation, mounted as
+  # `OAUTH_REQUEST_STATE_KEY_FILE`; `previousKey` names the Secret's key
+  # holding the key before a rotation, mounted as
+  # `OAUTH_REQUEST_STATE_PREVIOUS_KEY_FILE`. Each server has its own key.
+  # Empty name: no key, and a muster sign-in is answered as a tool error
+  # naming its URL.
+  requestStateSecret:
+    name: ""
+    key: key
+    previousKey: ""
 
 # -- The installation's owners, who approve a source a person adds once
 # before its toolchains are offered: Dex groups and verified emails. Without

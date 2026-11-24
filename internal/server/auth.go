@@ -181,11 +181,16 @@ func (g *Guard) authenticate(ctx context.Context, bearer string) (*identity.Iden
 		Email         string   `json:"email"`
 		EmailVerified bool     `json:"email_verified"`
 		Groups        []string `json:"groups"`
+		AuthorizedBy  string   `json:"azp"`
 	}
 	if err := tok.Claims(&claims); err != nil {
 		return nil, fmt.Errorf("read the token's claims: %w", err)
 	}
-	return &identity.Identity{Subject: tok.Subject, Email: claims.Email, EmailVerified: claims.EmailVerified, Groups: claims.Groups}, nil
+	client := claims.AuthorizedBy
+	if client == "" && len(tok.Audience) == 1 {
+		client = tok.Audience[0]
+	}
+	return &identity.Identity{Subject: tok.Subject, Email: claims.Email, EmailVerified: claims.EmailVerified, Groups: claims.Groups, Issuer: tok.Issuer, Client: client}, nil
 }
 
 // verifyGrant asks GitHub whose token this is, unless a recent answer

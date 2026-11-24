@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"log/slog"
 	"strings"
 
 	"github.com/giantswarm/mcp-toolkit/brand"
@@ -38,11 +39,15 @@ func NewMCPServer(svc *Service, version string) *mcpserver.MCPServer {
 			instr += deprecateInstructions
 		}
 	}
-	s := mcpserver.NewMCPServer("toolchain-manager", version,
+	opts := []mcpserver.ServerOption{
 		mcpserver.WithToolCapabilities(false),
 		mcpserver.WithInstructions(instr),
 		brand.WithGiantSwarmIcon(),
-	)
+	}
+	if svc.SignIns != nil {
+		opts = append(opts, mcpserver.WithToolHandlerMiddleware(relaySignIns(svc.SignIns, slog.Default())))
+	}
+	s := mcpserver.NewMCPServer("toolchain-manager", version, opts...)
 	t := &tools{svc: svc}
 
 	sourceProp := mcp.WithString("source", mcp.Description("Package source, "+strings.Join(svc.Sources.Names(), " or ")+"; default "+svc.DefaultSource))
