@@ -184,6 +184,147 @@
                         "description": {
                             "type": "string"
                         },
+                        "approval": {
+                            "type": "object",
+                            "description": "The connector's tool approval (the MCPServer's `spec.approval`). Every tool of this release is listed explicitly (\"Allow all\" preset: a platform management server), so the connector arrives reviewed. `rule` covers tools without their own entry, new ones included. Values: Allow | Ask | Block (Block hides and refuses). Override per tool in installation values; `null` renders none (`{}` does not: Helm merges it into the default) and the connector runs every tool, shown as not reviewed. On a governed platform muster asks an agent caller before every tool not on its safe list, whatever these settings say; on a trusted platform these settings apply. Muster's built-in floor asks agents in both modes for `approve_source`. Needs a muster whose MCPServer CRD carries `spec.approval`. Details: https://github.com/giantswarm/agent-platform/blob/main/docs/tool-approval.md",
+                            "additionalProperties": false,
+                            "properties": {
+                                "rule": {
+                                    "type": "string",
+                                    "enum": [
+                                        "Allow",
+                                        "Ask",
+                                        "Block"
+                                    ]
+                                },
+                                "tools": {
+                                    "type": "object",
+                                    "properties": {
+                                        "add_binary": {
+                                            "type": "string",
+                                            "enum": [
+                                                "Allow",
+                                                "Ask",
+                                                "Block"
+                                            ]
+                                        },
+                                        "add_packages": {
+                                            "type": "string",
+                                            "enum": [
+                                                "Allow",
+                                                "Ask",
+                                                "Block"
+                                            ]
+                                        },
+                                        "add_source": {
+                                            "type": "string",
+                                            "enum": [
+                                                "Allow",
+                                                "Ask",
+                                                "Block"
+                                            ]
+                                        },
+                                        "approve_source": {
+                                            "type": "string",
+                                            "enum": [
+                                                "Allow",
+                                                "Ask",
+                                                "Block"
+                                            ]
+                                        },
+                                        "create_toolchain": {
+                                            "type": "string",
+                                            "enum": [
+                                                "Allow",
+                                                "Ask",
+                                                "Block"
+                                            ]
+                                        },
+                                        "deprecate_toolchain": {
+                                            "type": "string",
+                                            "enum": [
+                                                "Allow",
+                                                "Ask",
+                                                "Block"
+                                            ]
+                                        },
+                                        "describe_toolchain": {
+                                            "type": "string",
+                                            "enum": [
+                                                "Allow",
+                                                "Ask",
+                                                "Block"
+                                            ]
+                                        },
+                                        "init_source": {
+                                            "type": "string",
+                                            "enum": [
+                                                "Allow",
+                                                "Ask",
+                                                "Block"
+                                            ]
+                                        },
+                                        "list_sources": {
+                                            "type": "string",
+                                            "enum": [
+                                                "Allow",
+                                                "Ask",
+                                                "Block"
+                                            ]
+                                        },
+                                        "list_toolchains": {
+                                            "type": "string",
+                                            "enum": [
+                                                "Allow",
+                                                "Ask",
+                                                "Block"
+                                            ]
+                                        },
+                                        "remove_source": {
+                                            "type": "string",
+                                            "enum": [
+                                                "Allow",
+                                                "Ask",
+                                                "Block"
+                                            ]
+                                        },
+                                        "search_packages": {
+                                            "type": "string",
+                                            "enum": [
+                                                "Allow",
+                                                "Ask",
+                                                "Block"
+                                            ]
+                                        },
+                                        "toolchain_build_status": {
+                                            "type": "string",
+                                            "enum": [
+                                                "Allow",
+                                                "Ask",
+                                                "Block"
+                                            ]
+                                        },
+                                        "update_toolchain": {
+                                            "type": "string",
+                                            "enum": [
+                                                "Allow",
+                                                "Ask",
+                                                "Block"
+                                            ]
+                                        }
+                                    },
+                                    "additionalProperties": {
+                                        "type": "string",
+                                        "enum": [
+                                            "Allow",
+                                            "Ask",
+                                            "Block"
+                                        ]
+                                    },
+                                    "maxProperties": 512
+                                }
+                            }
+                        },
                         "authorizationServer": {
                             "type": "object",
                             "description": "Pin the registration to the toolchain-manager's GitHub App instead of `github.grantApp`'s provider App (the shape before muster kept provider Apps): issuer (https://github.com/apps/<id>), expectedIssuer, authorizationEndpoint, tokenEndpoint and clientCredentialsSecretRef (name, namespace, clientIdKey, clientSecretKey) of muster's `auth.authorizationServer`, `grantScope: subject`. The bearer is then the person's App token, the Dex ID token arrives in `X-Muster-Id-Token`, and a person without the grant is answered with the App's sign-in link. Empty: provider Apps.",

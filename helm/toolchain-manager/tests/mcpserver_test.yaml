@@ -1,0 +1,85 @@
+# The MCPServer's tool approval: written out explicitly by the chart (the
+# "Allow all" preset, every tool of the release named), overridable per tool,
+# dropped with null, and bound by the values schema (Allow | Ask | Block per
+# tool, Allow | Ask | Block for the rule). The registration needs the
+# authenticated shape (auth.dex.issuerURL), the same values as ci/ci-values.yaml.
+#
+# Run with: helm unittest helm/toolchain-manager
+suite: mcpserver tool approval
+templates:
+  - templates/mcpserver.yaml
+release:
+  name: toolchain-manager
+  namespace: agent-platform
+set:
+  auth:
+    dex:
+      issuerURL: https://dex.example.com
+    trustedAudiences: [muster]
+  owners:
+    groups: [admins]
+  muster:
+    mcpServer:
+      enabled: true
+tests:
+  - it: sets the tool approval explicitly, the "Allow all" preset
+    asserts:
+      - equal:
+          path: spec.approval.rule
+          value: Allow
+      - equal:
+          path: spec.approval.tools.search_packages
+          value: Allow
+      - equal:
+          path: spec.approval.tools.approve_source
+          value: Allow
+      - equal:
+          path: spec.approval.tools.deprecate_toolchain
+          value: Allow
+
+  - it: renders an installation's override of one tool
+    set:
+      muster:
+        mcpServer:
+          approval:
+            tools:
+              create_toolchain: Ask
+    asserts:
+      - equal:
+          path: spec.approval.tools.create_toolchain
+          value: Ask
+      - equal:
+          path: spec.approval.tools.list_toolchains
+          value: Allow
+      - equal:
+          path: spec.approval.rule
+          value: Allow
+
+  - it: renders no approval when it is null
+    set:
+      muster:
+        mcpServer:
+          approval: null
+    asserts:
+      - notExists:
+          path: spec.approval
+
+  - it: renders a rule of Block, which hides and refuses every tool without its own entry
+    set:
+      muster:
+        mcpServer:
+          approval:
+            rule: Block
+    asserts:
+      - equal:
+          path: spec.approval.rule
+          value: Block
+
+  - it: refuses a rule the CRD does not allow
+    set:
+      muster:
+        mcpServer:
+          approval:
+            rule: Deny
+    asserts:
+      - failedTemplate: {}
