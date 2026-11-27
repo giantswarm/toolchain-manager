@@ -36,6 +36,8 @@ type Service struct {
 	// Toolchains reads the offered sources' published toolchains; nil
 	// serves no toolchain tools.
 	Toolchains *toolchains.Catalog
+	// URLElicitations relays URL interactions requested by muster.
+	URLElicitations *URLElicitor
 }
 
 // SearchResult is search_packages' answer.

@@ -11,6 +11,9 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/giantswarm/mcp-oauth/oauthconfig"
+	"github.com/giantswarm/mcp-oauth/requeststate"
+	"github.com/giantswarm/mcp-toolkit/urlelicitation"
 	mcpserver "github.com/mark3labs/mcp-go/server"
 	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"
@@ -135,6 +138,12 @@ func serve(ctx context.Context, o serveOptions) error {
 				return err
 			}
 			svc.Toolchains.Users = users
+			if svc.URLElicitations, err = urlElicitor(); err != nil {
+				return err
+			}
+			if svc.URLElicitations == nil {
+				slog.Info("OAUTH_REQUEST_STATE_KEY is not set: URL interactions requested by muster are answered as tool errors naming their URL, not relayed as URL elicitation")
+			}
 		}
 		if guard, err = server.NewGuard(ctx, server.AuthConfig{
 			Issuer: o.dexIssuer, JWKSURL: o.dexJWKSURL, CAFile: o.dexCAFile, Audiences: o.trustedAudiences, GrantApp: o.grantApp, Pinned: o.grantPinned, GitHub: gh,
@@ -234,4 +243,21 @@ func (o serveOptions) updates(ctx context.Context, svc *api.Service, gh *github.
 		watch.Notifier = &gateway.Client{URL: o.gatewayURL, TokenFile: o.gatewayTokenFile}
 	}
 	go watch.Run(ctx)
+}
+
+// urlElicitor relays URL interactions requested by muster to a tool's caller with
+// requestState sealed by OAUTH_REQUEST_STATE_KEY (and, during a rotation,
+// OAUTH_REQUEST_STATE_PREVIOUS_KEY, each also as _FILE); nil when no key is
+// set.
+func urlElicitor() (*api.URLElicitor, error) {
+	sealer, err := oauthconfig.NewRequestStateSealerFromEnv()
+	if err != nil {
+		return nil, fmt.Errorf("request state key: %w", err)
+	}
+	if sealer == nil {
+		return nil, nil
+	}
+	return urlelicitation.New(sealer, urlelicitation.WithExpired(func(err error) bool {
+		return errors.Is(err, requeststate.ErrExpired)
+	}))
 }

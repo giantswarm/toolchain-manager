@@ -18,6 +18,11 @@ type Identity struct {
 	EmailVerified bool
 	// Groups are the IdP group claims (Dex `groups`).
 	Groups []string
+	// Issuer is the issuer of the validated token.
+	Issuer string
+	// ClientID is the OAuth client the token was issued to: its `azp`, else
+	// its only audience; empty when it names no one client.
+	ClientID string
 }
 
 // String is the caller as recorded and reported: the verified email, else
