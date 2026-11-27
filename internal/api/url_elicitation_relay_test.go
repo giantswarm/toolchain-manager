@@ -10,7 +10,9 @@ import (
 	"net/http/httptest"
 	"sync"
 	"testing"
+	"time"
 
+	"github.com/giantswarm/mcp-oauth/providers"
 	"github.com/giantswarm/mcp-oauth/requeststate"
 	"github.com/giantswarm/mcp-oauth/security"
 	"github.com/giantswarm/mcp-toolkit/urlelicitation"
@@ -45,8 +47,9 @@ type musterCall struct {
 // to a 2026-07-28 caller that declares URL mode elicitation, auth_required
 // to any other; an accepted answer with its requestState runs the tool.
 type fakeMuster struct {
-	mu    sync.Mutex
-	calls []musterCall
+	message string
+	mu      sync.Mutex
+	calls   []musterCall
 }
 
 func (f *fakeMuster) Calls() []musterCall {
@@ -81,7 +84,7 @@ func (f *fakeMuster) start(t *testing.T) string {
 		case call.DeclaredURL:
 			return mcpserver.NewInputRequestBuilder(musterState).Elicit(musterKey, mcp.ElicitationParams{
 				Mode:    mcp.ElicitationModeURL,
-				Message: "Sign in to agent-manager in muster.",
+				Message: f.prompt(),
 				URL:     musterSignInAt,
 			}).ToolResult(), nil
 		default:
@@ -105,14 +108,11 @@ func envelope(res *mcp.CallToolResult) (*mcp.CallToolResult, error) {
 // relayServer is the toolchain-manager's MCP server with one tool that asks
 // agent-manager through muster who uses a toolchain, as deprecate_toolchain
 // does. The caller is the person its X-User header names.
-func relayServer(t *testing.T, musterURL string, elicitor *SignInElicitor) string {
+func relayServer(t *testing.T, musterURL string, elicitor *URLElicitor) string {
 	t.Helper()
 	users, err := agentmanager.New(musterURL, "x_agent-manager_", "test")
 	require.NoError(t, err)
-	opts := []mcpserver.ServerOption{}
-	if elicitor != nil {
-		opts = append(opts, mcpserver.WithToolHandlerMiddleware(relaySignIns(elicitor, slog.New(slog.DiscardHandler))))
-	}
+	opts := []mcpserver.ServerOption{mcpserver.WithToolHandlerMiddleware(relayURLElicitations(elicitor, slog.New(slog.DiscardHandler)))}
 	s := mcpserver.NewMCPServer("toolchain-manager", "test", opts...)
 	s.AddTool(mcp.NewTool(relayTool, mcp.WithString("name")), func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		usage, err := users.Users(ctx, "id-token", req.GetString("name", ""), "")
@@ -127,14 +127,14 @@ func relayServer(t *testing.T, musterURL string, elicitor *SignInElicitor) strin
 	})
 	mcpHandler := mcpserver.NewStreamableHTTPServer(s)
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		id := &identity.Identity{Issuer: "https://dex.example", Subject: r.Header.Get("X-User"), Client: "muster"}
+		id := &identity.Identity{Issuer: "https://dex.example", Subject: r.Header.Get("X-User"), ClientID: "muster"}
 		mcpHandler.ServeHTTP(w, r.WithContext(identity.ContextWith(r.Context(), id)))
 	}))
 	t.Cleanup(srv.Close)
 	return srv.URL + "/mcp"
 }
 
-func newElicitor(t *testing.T) *SignInElicitor {
+func newElicitor(t *testing.T) *URLElicitor {
 	t.Helper()
 	secret := make([]byte, 32)
 	_, err := rand.Read(secret)
@@ -273,6 +273,14 @@ func TestRequestStateIsBoundToTheCaller(t *testing.T) {
 		_, err := callRelayTool(t, bob, answer(state, mcp.ElicitationResponseActionAccept))
 		require.ErrorContains(t, err, "invalid requestState")
 	})
+	t.Run("different arguments", func(t *testing.T) {
+		request := mcp.CallToolRequest{}
+		request.Params.Name = relayTool
+		request.Params.Arguments = map[string]any{}
+		request.Params.MultiRoundTripParams = answer(state, mcp.ElicitationResponseActionAccept)
+		_, err := alice.CallTool(t.Context(), request)
+		require.ErrorContains(t, err, "invalid requestState")
+	})
 	require.Len(t, muster.Calls(), 1)
 }
 
@@ -327,4 +335,77 @@ func tamper(state string) string {
 		b[i] = 'A'
 	}
 	return string(b)
+}
+
+type failingSealer struct{}
+
+func (failingSealer) Seal(*providers.UserInfo, string, []byte, time.Duration) (string, error) {
+	return "", errors.New("sealing unavailable")
+}
+
+func (failingSealer) Open(*providers.UserInfo, string, string) ([]byte, error) {
+	return nil, errors.New("opening unavailable")
+}
+
+func TestSealingFailureFailsCall(t *testing.T) {
+	elicitor, err := urlelicitation.New(failingSealer{})
+	require.NoError(t, err)
+	backend := &fakeMuster{}
+	endpoint := relayServer(t, backend.start(t), elicitor)
+	client := (caller{user: "alice", url: true, protocol: mcp.LATEST_PROTOCOL_VERSION}).connect(t, endpoint)
+	result, err := callRelayTool(t, client, mcp.MultiRoundTripParams{})
+	require.ErrorContains(t, err, "sealing unavailable")
+	require.Nil(t, result)
+	require.Len(t, backend.Calls(), 1)
+}
+
+func (f *fakeMuster) prompt() string {
+	if f.message != "" {
+		return f.message
+	}
+	return "Complete the requested URL interaction."
+}
+
+func TestGenericURLInteractionPreservesProducerMessage(t *testing.T) {
+	backend := &fakeMuster{message: "Upload the model credential in the credential portal."}
+	endpoint := relayServer(t, backend.start(t), newElicitor(t))
+	client := (caller{user: "alice", url: true, protocol: mcp.LATEST_PROTOCOL_VERSION}).connect(t, endpoint)
+	result, err := callRelayTool(t, client, mcp.MultiRoundTripParams{})
+	require.NoError(t, err)
+	require.True(t, result.NeedsInput())
+	require.Contains(t, result.InputRequests[urlelicitation.RelayKey].Elicitation.Message, backend.message)
+}
+
+func TestRetryWithoutIdentityFailsBeforeHandler(t *testing.T) {
+	called := false
+	next := func(context.Context, mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		called = true
+		return mcp.NewToolResultText("ran"), nil
+	}
+	request := mcp.CallToolRequest{}
+	request.Params.Name = relayTool
+	request.Params.RequestState = "state-without-a-caller"
+	result, err := relayURLElicitations(newElicitor(t), slog.Default())(next)(t.Context(), request)
+	require.Error(t, err)
+	require.Nil(t, result)
+	require.False(t, called)
+	var protocolError interface{ JSONRPCError() mcp.JSONRPCError }
+	require.ErrorAs(t, err, &protocolError)
+	require.Equal(t, mcp.INVALID_PARAMS, protocolError.JSONRPCError().Error.Code)
+}
+
+func TestDisabledRelayRejectsContinuation(t *testing.T) {
+	backend := &fakeMuster{}
+	musterURL := backend.start(t)
+	withKey := relayServer(t, musterURL, newElicitor(t))
+	callerWithKey := (caller{user: "alice", url: true, protocol: mcp.LATEST_PROTOCOL_VERSION}).connect(t, withKey)
+	pending, err := callRelayTool(t, callerWithKey, mcp.MultiRoundTripParams{})
+	require.NoError(t, err)
+	require.True(t, pending.NeedsInput())
+	withoutKey := relayServer(t, musterURL, nil)
+	callerWithoutKey := (caller{user: "alice", url: true, protocol: mcp.LATEST_PROTOCOL_VERSION}).connect(t, withoutKey)
+	result, err := callRelayTool(t, callerWithoutKey, answer(pending.RequestState, mcp.ElicitationResponseActionDecline))
+	require.ErrorContains(t, err, "requestState cannot be verified")
+	require.Nil(t, result)
+	require.Len(t, backend.Calls(), 1)
 }

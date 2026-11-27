@@ -20,9 +20,9 @@ type Identity struct {
 	Groups []string
 	// Issuer is the issuer of the validated token.
 	Issuer string
-	// Client is the OAuth client the token was issued to: its `azp`, else
+	// ClientID is the OAuth client the token was issued to: its `azp`, else
 	// its only audience; empty when it names no one client.
-	Client string
+	ClientID string
 }
 
 // String is the caller as recorded and reported: the verified email, else

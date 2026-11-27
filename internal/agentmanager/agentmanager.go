@@ -7,8 +7,6 @@ package agentmanager
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -78,12 +76,8 @@ func (c *Client) Users(ctx context.Context, bearer, name, version string) (toolc
 	return out, nil
 }
 
-// call runs tool through muster's call_tool as the person, one MCP session
-// per call, and returns its JSON result: the structured content, else the
-// text when that is a JSON object, as agent-manager answers. On a context
-// from WithRelay the call declares URL mode elicitation, so muster asks for
-// a sign-in as an InputRequiredResult, which the Relay records and call
-// answers as an error naming its URL.
+// call runs a tool through muster and returns its JSON result. URL input
+// requests are recorded for the relay and retain the producer's message.
 func (c *Client) call(ctx context.Context, bearer, tool string, args map[string]any) (json.RawMessage, error) {
 	if bearer == "" {
 		return nil, errors.New("muster: the call carries no Dex ID token of the person")
@@ -113,7 +107,10 @@ func (c *Client) call(ctx context.Context, bearer, tool string, args map[string]
 	req.Params.Name = metaCallTool
 	req.Params.Arguments = map[string]any{"name": tool, "arguments": args}
 	relay := relayFrom(ctx)
-	target := callTarget(tool, args)
+	target, err := urlelicitation.RequestBinding(req)
+	if err != nil {
+		return nil, err
+	}
 	if relay != nil {
 		ctx = mcpclient.WithRequestClientCapabilities(ctx, urlElicitation)
 		req.Params.MultiRoundTripParams = relay.answer(target)
@@ -188,20 +185,17 @@ func structuredOf(r *mcp.CallToolResult) json.RawMessage {
 // muster.
 var urlElicitation = mcp.ClientCapabilities{Elicitation: &mcp.ElicitationCapability{URL: &struct{}{}}}
 
-// Relay carries muster's sign-ins between one tool call of the
-// toolchain-manager and that call's caller. Calls through muster on a
-// context from WithRelay declare URL mode elicitation; the first sign-in
-// muster asks for is kept for the caller, and the caller's answer goes once
-// to the call it was asked for, the same tool with the same arguments.
+// Relay binds the first URL elicitation to its originating call and sends
+// the caller's answer only to that call, once per handler invocation.
 type Relay struct {
-	mu       sync.Mutex
-	retry    *urlelicitation.Retry
-	answered bool
-	signIn   *SignIn
+	mu          sync.Mutex
+	retry       *urlelicitation.Retry
+	answered    bool
+	elicitation *Elicitation
 }
 
-// SignIn is a sign-in muster asked a call for.
-type SignIn struct {
+// Elicitation is a URL interaction requested by muster.
+type Elicitation struct {
 	// Target names the call: the tool and a digest of its arguments.
 	Target string
 	// Relayed is muster's URL elicitation and requestState.
@@ -210,9 +204,7 @@ type SignIn struct {
 
 type relayKey struct{}
 
-// WithRelay returns a context whose calls through muster relay sign-ins,
-// and the Relay that collects them. retry is the caller's answer to a
-// sign-in relayed earlier; nil on a first call.
+// WithRelay records URL elicitations and forwards a matching retry once.
 func WithRelay(ctx context.Context, retry *urlelicitation.Retry) (context.Context, *Relay) {
 	r := &Relay{retry: retry}
 	return context.WithValue(ctx, relayKey{}, r), r
@@ -223,11 +215,11 @@ func relayFrom(ctx context.Context) *Relay {
 	return r
 }
 
-// SignIn is the first sign-in muster asked for; nil when none.
-func (r *Relay) SignIn() *SignIn {
+// Elicitation returns the first pending URL interaction, or nil.
+func (r *Relay) Elicitation() *Elicitation {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	return r.signIn
+	return r.elicitation
 }
 
 // answer is the caller's answer for the call target, once.
@@ -244,15 +236,7 @@ func (r *Relay) answer(target string) mcp.MultiRoundTripParams {
 func (r *Relay) record(target string, relayed *urlelicitation.Relayed) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	if r.signIn == nil {
-		r.signIn = &SignIn{Target: target, Relayed: relayed}
+	if r.elicitation == nil {
+		r.elicitation = &Elicitation{Target: target, Relayed: relayed}
 	}
-}
-
-// callTarget names a call through muster: the tool and a digest of its
-// arguments. encoding/json orders map keys, so equal arguments name alike.
-func callTarget(tool string, args map[string]any) string {
-	raw, _ := json.Marshal(args)
-	digest := sha256.Sum256(raw)
-	return tool + "\x00" + hex.EncodeToString(digest[:])
 }

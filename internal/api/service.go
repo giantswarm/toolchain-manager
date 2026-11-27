@@ -36,9 +36,8 @@ type Service struct {
 	// Toolchains reads the offered sources' published toolchains; nil
 	// serves no toolchain tools.
 	Toolchains *toolchains.Catalog
-	// SignIns relays muster's sign-ins to the tool's caller as URL mode
-	// elicitation; nil answers them as tool errors naming their URL.
-	SignIns *SignInElicitor
+	// URLElicitations relays URL interactions requested by muster.
+	URLElicitations *URLElicitor
 }
 
 // SearchResult is search_packages' answer.

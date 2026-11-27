@@ -96,7 +96,7 @@ func TestGuard(t *testing.T) {
 		id, _ := identity.FromContext(r.Context())
 		grant, _ := identity.Grant(r.Context())
 		token, _ := identity.IDToken(r.Context())
-		got = seen{caller: id.String(), grant: grant, header: r.Header.Get("X-Muster-Grant-github") != "", idToken: token != "" && token == bearer, issuer: id.Issuer == dex.srv.URL, client: id.Client}
+		got = seen{caller: id.String(), grant: grant, header: r.Header.Get("X-Muster-Grant-github") != "", idToken: token != "" && token == bearer, issuer: id.Issuer == dex.srv.URL, client: id.ClientID}
 	}))
 
 	for name, tc := range map[string]struct {

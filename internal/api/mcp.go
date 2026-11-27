@@ -44,9 +44,7 @@ func NewMCPServer(svc *Service, version string) *mcpserver.MCPServer {
 		mcpserver.WithInstructions(instr),
 		brand.WithGiantSwarmIcon(),
 	}
-	if svc.SignIns != nil {
-		opts = append(opts, mcpserver.WithToolHandlerMiddleware(relaySignIns(svc.SignIns, slog.Default())))
-	}
+	opts = append(opts, mcpserver.WithToolHandlerMiddleware(relayURLElicitations(svc.URLElicitations, slog.Default())))
 	s := mcpserver.NewMCPServer("toolchain-manager", version, opts...)
 	t := &tools{svc: svc}
 

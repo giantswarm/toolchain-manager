@@ -170,27 +170,27 @@ func (g *Guard) authenticate(ctx context.Context, bearer string) (*identity.Iden
 	if bearer == "" {
 		return nil, errors.New("no Dex ID token: muster forwards the person's")
 	}
-	tok, err := g.verifier.Verify(ctx, bearer)
+	token, err := g.verifier.Verify(ctx, bearer)
 	if err != nil {
 		return nil, fmt.Errorf("the bearer is no valid Dex ID token: %w", err)
 	}
-	if !slices.ContainsFunc(tok.Audience, func(a string) bool { return slices.Contains(g.cfg.Audiences, a) }) {
-		return nil, fmt.Errorf("token audience %v matches none of the trusted audiences %v", tok.Audience, g.cfg.Audiences)
+	if !slices.ContainsFunc(token.Audience, func(a string) bool { return slices.Contains(g.cfg.Audiences, a) }) {
+		return nil, fmt.Errorf("token audience %v matches none of the trusted audiences %v", token.Audience, g.cfg.Audiences)
 	}
 	var claims struct {
-		Email         string   `json:"email"`
-		EmailVerified bool     `json:"email_verified"`
-		Groups        []string `json:"groups"`
-		AuthorizedBy  string   `json:"azp"`
+		Email           string   `json:"email"`
+		EmailVerified   bool     `json:"email_verified"`
+		Groups          []string `json:"groups"`
+		AuthorizedParty string   `json:"azp"`
 	}
-	if err := tok.Claims(&claims); err != nil {
+	if err := token.Claims(&claims); err != nil {
 		return nil, fmt.Errorf("read the token's claims: %w", err)
 	}
-	client := claims.AuthorizedBy
-	if client == "" && len(tok.Audience) == 1 {
-		client = tok.Audience[0]
+	client := claims.AuthorizedParty
+	if client == "" && len(token.Audience) == 1 {
+		client = token.Audience[0]
 	}
-	return &identity.Identity{Subject: tok.Subject, Email: claims.Email, EmailVerified: claims.EmailVerified, Groups: claims.Groups, Issuer: tok.Issuer, Client: client}, nil
+	return &identity.Identity{Subject: token.Subject, Email: claims.Email, EmailVerified: claims.EmailVerified, Groups: claims.Groups, Issuer: token.Issuer, ClientID: client}, nil
 }
 
 // verifyGrant asks GitHub whose token this is, unless a recent answer
